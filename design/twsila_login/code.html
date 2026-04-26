@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TWSILA - Student Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-on-surface": "#ebf1ff",
+                        "inverse-primary": "#c3c0ff",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "inverse-surface": "#2a313d",
+                        "secondary": "#006c4a",
+                        "background": "#f9f9ff",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "on-tertiary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "surface-dim": "#d3daea",
+                        "surface-container": "#e7eefe",
+                        "secondary-fixed-dim": "#68dba9",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-container": "#3730a3",
+                        "outline-variant": "#c8c4d5",
+                        "primary-fixed": "#e2dfff",
+                        "tertiary-container": "#603b00",
+                        "on-secondary-fixed": "#002114",
+                        "on-tertiary-fixed": "#2a1700",
+                        "surface-tint": "#544fc0",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "secondary-fixed": "#85f8c4",
+                        "on-background": "#151c27",
+                        "surface": "#f9f9ff",
+                        "secondary-container": "#82f5c1",
+                        "on-primary-fixed-variant": "#3b35a7",
+                        "surface-variant": "#dce2f3",
+                        "surface-bright": "#f9f9ff",
+                        "on-error": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-container": "#00714e",
+                        "on-tertiary-container": "#f49d09",
+                        "error": "#ba1a1a",
+                        "tertiary": "#422700",
+                        "on-secondary-fixed-variant": "#005137",
+                        "surface-container-highest": "#dce2f3",
+                        "outline": "#777584",
+                        "on-surface-variant": "#464553",
+                        "on-primary-container": "#a9a7ff",
+                        "on-primary-fixed": "#0f0069",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed": "#ffddb8",
+                        "surface-container-low": "#f0f3ff",
+                        "on-surface": "#151c27",
+                        "primary": "#1f108e",
+                        "surface-container-high": "#e2e8f8"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-margin": "24px",
+                        "gutter": "16px",
+                        "stack-md": "16px",
+                        "stack-lg": "32px",
+                        "stack-sm": "8px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "h3": ["Cairo"],
+                        "h2": ["Cairo"],
+                        "label-sm": ["Cairo"],
+                        "h1": ["Cairo"],
+                        "body-md": ["Cairo"],
+                        "label-md": ["Cairo"],
+                        "body-lg": ["Cairo"]
+                    },
+                    "fontSize": {
+                        "h3": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "h2": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "h1": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col items-center justify-center">
+<div class="w-full max-w-[440px] px-container-margin py-stack-lg">
+<!-- Logo and Branding Section -->
+<div class="text-center mb-stack-lg">
+<div class="inline-flex items-center justify-center p-4 rounded-xl bg-primary-container shadow-[0_8px_30px_rgb(55,48,163,0.12)] mb-stack-md">
+<span class="material-symbols-outlined text-on-primary-container text-[40px]" data-icon="directions_bus">directions_bus</span>
+</div>
+<h1 class="font-h1 text-h1 text-primary tracking-tighter">TWSILA</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">Connecting Egypt's Academic Community</p>
+</div>
+<!-- Login Card -->
+<div class="bg-surface-container-lowest p-8 rounded-xl shadow-[0_4px_20px_rgba(55,48,163,0.04)] border border-surface-variant/50">
+<h2 class="font-h2 text-h2 mb-stack-md text-on-surface">Welcome Back</h2>
+<form class="space-y-stack-md" onsubmit="return false;">
+<!-- Email Field -->
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface-variant block" for="email">University Email</label>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline text-[20px] group-focus-within:text-primary transition-colors" data-icon="school">school</span>
+</div>
+<input class="w-full pl-11 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg font-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-outline" id="email" placeholder="student@uni.edu.eg" type="email"/>
+</div>
+</div>
+<!-- Password Field -->
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface-variant block" for="password">Password</label>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline text-[20px] group-focus-within:text-primary transition-colors" data-icon="lock">lock</span>
+</div>
+<input class="w-full pl-11 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg font-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-outline" id="password" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<!-- Forgot Password -->
+<div class="flex justify-end">
+<a class="font-label-md text-label-md text-primary hover:text-primary-fixed-dim transition-colors" href="#">Forgot Password?</a>
+</div>
+<!-- Sign In Button -->
+<button class="w-full bg-primary-container text-on-primary-container py-4 rounded-lg font-label-md text-lg shadow-[0_4px_12px_rgba(31,16,142,0.15)] hover:bg-primary transition-all active:scale-[0.98] mt-4" type="submit">
+                    Sign In
+                </button>
+</form>
+<!-- Social/Other Logins (Optional but adds to "Professional" feel) -->
+<div class="relative my-stack-lg">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-outline-variant"></div>
+</div>
+<div class="relative flex justify-center text-label-sm">
+<span class="bg-surface-container-lowest px-4 text-on-surface-variant uppercase tracking-widest font-bold">Verified Partners</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-gutter">
+<button class="flex items-center justify-center gap-2 py-2 border border-outline-variant rounded-lg font-label-md text-on-surface hover:bg-surface-container-high transition-colors">
+<img alt="Google Logo" class="w-4 h-4" data-alt="Official Google favicon icon for SSO login interface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEqWTHdhnGQh-MyfZqwlenmcGY6fbNkmhyzPCeazd2MVUwiyZn2BAuhjT_hANIhoePbSyg_sWwnTKMviUxY2ceK1PpklzYYNvidDquJ-aYQSw9bmqoLcZLe4Bnu1x1nc06OAKGNsjtRoipEVXCKwJQDV1ZXYK0KI9PjFt-UhKtzVJVPCWlr3q2MBvxkehVKDMBg7AYdZJ8aEqzbgOI8xA0we-SWLddwpPFCpl1UCmP0BbKWQhrQMKkphR2HjSz0ai6_lXI4Jq-R2A"/>
+                    Google
+                </button>
+<button class="flex items-center justify-center gap-2 py-2 border border-outline-variant rounded-lg font-label-md text-on-surface hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="hub">hub</span>
+                    Uni Hub
+                </button>
+</div>
+</div>
+<!-- Footer / Redirect -->
+<p class="mt-stack-lg text-center font-body-md text-on-surface-variant">
+            Don't have an account? 
+            <a class="text-primary font-label-md hover:underline decoration-2 underline-offset-4" href="#">Sign Up</a>
+</p>
+<!-- Academic Trust Badge -->
+<div class="mt-stack-lg pt-stack-md border-t border-surface-variant/30 flex items-center justify-center gap-4 grayscale opacity-60">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="verified_user">verified_user</span>
+<span class="text-[10px] font-bold tracking-widest uppercase">Secured by SCU</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="shield">shield</span>
+<span class="text-[10px] font-bold tracking-widest uppercase">Student Verified</span>
+</div>
+</div>
+</div>
+<!-- Background Decorative Element (Asymmetric/Glassmorphism feel) -->
+<div class="fixed top-[-10%] right-[-5%] w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px] -z-10"></div>
+<div class="fixed bottom-[-10%] left-[-5%] w-[300px] h-[300px] bg-secondary/5 rounded-full blur-[80px] -z-10"></div>
+</body></html>

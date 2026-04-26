@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#c3c0ff",
+                        "secondary-container": "#82f5c1",
+                        "on-primary-container": "#a9a7ff",
+                        "on-secondary-fixed": "#002114",
+                        "on-secondary": "#ffffff",
+                        "on-surface-variant": "#464553",
+                        "on-tertiary-fixed": "#2a1700",
+                        "primary-container": "#3730a3",
+                        "secondary": "#006c4a",
+                        "on-primary-fixed-variant": "#3b35a7",
+                        "surface-variant": "#dce2f3",
+                        "error-container": "#ffdad6",
+                        "background": "#f9f9ff",
+                        "tertiary-container": "#603b00",
+                        "surface-container": "#e7eefe",
+                        "surface-container-high": "#e2e8f8",
+                        "surface-container-low": "#f0f3ff",
+                        "on-secondary-container": "#00714e",
+                        "on-primary-fixed": "#0f0069",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#151c27",
+                        "primary": "#1f108e",
+                        "on-error-container": "#93000a",
+                        "inverse-on-surface": "#ebf1ff",
+                        "on-tertiary-container": "#f49d09",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#85f8c4",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "outline-variant": "#c8c4d5",
+                        "tertiary-fixed": "#ffddb8",
+                        "surface": "#f9f9ff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "secondary-fixed-dim": "#68dba9",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "surface-dim": "#d3daea",
+                        "surface-container-highest": "#dce2f3",
+                        "inverse-surface": "#2a313d",
+                        "primary-fixed": "#e2dfff",
+                        "on-secondary-fixed-variant": "#005137",
+                        "outline": "#777584",
+                        "on-background": "#151c27",
+                        "on-error": "#ffffff",
+                        "surface-tint": "#544fc0",
+                        "surface-bright": "#f9f9ff",
+                        "tertiary": "#422700"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-margin": "24px",
+                        "stack-md": "16px",
+                        "stack-sm": "8px",
+                        "gutter": "16px",
+                        "stack-lg": "32px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "sans": ["Cairo", "sans-serif"],
+                        "h1": ["Cairo"],
+                        "label-md": ["Cairo"],
+                        "label-sm": ["Cairo"],
+                        "body-lg": ["Cairo"],
+                        "h3": ["Cairo"],
+                        "h2": ["Cairo"],
+                        "body-md": ["Cairo"]
+                    },
+                    "fontSize": {
+                        "h1": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "h3": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "h2": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .step-active { font-variation-settings: 'FILL' 1; }
+        body {
+            min-height: max(884px, 100dvh);
+            font-family: 'Cairo', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-sans">
+<!-- TopAppBar shared component -->
+<header class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md docked full-width top-0 sticky z-50 border-b border-slate-100 dark:border-slate-800 shadow-[0_0_12px_rgba(55,48_163,0.06)]">
+<div class="flex justify-between items-center w-full px-6 py-4 max-w-screen-xl mx-auto">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed">
+<img alt="User profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDR3VD4fsL7enTH5kepOlNdha_r7q7xfmKKiJtANtnh_lK9s91ZkzT0RLX5tCoCRqCoY7Vt6wdT2n0-R00JzkjELJuW_GyOzok7sjoWdFwWBXIcKxP55ym1rYtV74tuxV81rO9CrfWXtVCu9t2DM31Mhs6AHy-Ds7U8hvlrhLMgQbdTp4WPbXqL29goRcLW1v4ZNQCFu8QaTQZEjVHF_jYJRrNWxgwwXSiIyECGy9ZIRH_deJ_m2EbYXD9mzTRoYeNi9Rg_ue7eBBU"/>
+</div>
+<div class="flex flex-col">
+<span class="text-2xl font-black text-indigo-900 dark:text-indigo-100 tracking-tight">TWSILA</span>
+<span class="text-[10px] font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-widest">Admin Passenger</span>
+</div>
+</div>
+<button class="bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 transition-all active:scale-95 duration-200 px-4 py-2 rounded-xl border border-outline-variant/30 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">cached</span>
+<span class="font-['Cairo'] font-bold text-indigo-700 dark:text-indigo-400 text-sm">Captain Mode</span>
+</button>
+</div>
+</header>
+<main class="flex-grow w-full max-w-2xl mx-auto px-container-margin py-stack-lg pb-32">
+<div class="space-y-stack-lg">
+<header>
+<h1 class="font-h1 text-h1 text-on-surface">Trip Logistics</h1>
+<p class="text-body-md text-on-surface-variant">Define the journey path and passenger capacity for this semester.</p>
+</header>
+<!-- Route Builder -->
+<section class="bg-white rounded-xl p-6 shadow-[0_4px_20px_rgba(55,48_163,0.04)] border border-indigo-50/50">
+<div class="flex items-center gap-3 mb-stack-md">
+<div class="p-2 bg-indigo-50 rounded-lg text-primary">
+<span class="material-symbols-outlined">location_on</span>
+</div>
+<h2 class="font-h3 text-h3 text-primary">Route Configuration</h2>
+</div>
+<div class="space-y-4 relative">
+<div class="absolute left-[19px] top-8 bottom-8 w-[2px] bg-indigo-100"></div>
+<!-- Start Point -->
+<div class="relative pl-12">
+<div class="absolute left-0 top-3 w-10 h-10 flex items-center justify-center">
+<div class="w-4 h-4 rounded-full bg-primary border-4 border-primary-fixed z-10"></div>
+</div>
+<label class="block font-label-sm text-outline mb-1">Start Point</label>
+<input class="w-full bg-surface-container-lowest border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md" placeholder="Enter starting location" type="text" value="Main Campus North Gate"/>
+</div>
+<!-- Stop 1 -->
+<div class="relative pl-12">
+<div class="absolute left-0 top-3 w-10 h-10 flex items-center justify-center">
+<div class="w-3 h-3 rounded-full bg-indigo-300 z-10"></div>
+</div>
+<label class="block font-label-sm text-outline mb-1">Intermediate Stop 1</label>
+<input class="w-full bg-surface-container-lowest border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md" placeholder="Enter stop address" type="text" value="Passenger Residences - Block A"/>
+</div>
+<!-- Stop 2 -->
+<div class="relative pl-12">
+<div class="absolute left-0 top-3 w-10 h-10 flex items-center justify-center">
+<div class="w-3 h-3 rounded-full bg-indigo-300 z-10"></div>
+</div>
+<label class="block font-label-sm text-outline mb-1">Intermediate Stop 2</label>
+<div class="flex gap-2">
+<input class="w-full bg-surface-container-lowest border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md" placeholder="Enter stop address" type="text" value="Central Library Hub"/>
+<button class="text-error p-2 hover:bg-error-container/20 rounded-lg transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+<!-- End Point -->
+<div class="relative pl-12">
+<div class="absolute left-0 top-3 w-10 h-10 flex items-center justify-center">
+<div class="w-4 h-4 rounded-full bg-secondary border-4 border-secondary-fixed z-10"></div>
+</div>
+<label class="block font-label-sm text-outline mb-1">End Point</label>
+<input class="w-full bg-surface-container-lowest border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md" placeholder="Enter destination" type="text" value="Metropolitan Station"/>
+</div>
+<button class="ml-12 flex items-center gap-2 text-primary font-label-md hover:bg-primary-fixed/30 px-3 py-2 rounded-lg transition-all active:scale-95">
+<span class="material-symbols-outlined">add_circle</span>
+                    Add Stop
+                </button>
+</div>
+</section>
+<!-- Period & Capacity Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Trip Period Card -->
+<section class="bg-white rounded-xl p-6 shadow-[0_4px_20px_rgba(55,48_163,0.04)] border border-indigo-50/50">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary">calendar_month</span>
+<h2 class="font-label-md text-primary uppercase">Trip Period</h2>
+</div>
+<div class="space-y-3">
+<div class="bg-surface-container-low p-3 rounded-lg flex items-center justify-between border border-transparent hover:border-indigo-100 transition-colors cursor-pointer">
+<span class="font-label-sm text-on-surface-variant">Feb 1st - March 1st</span>
+<span class="material-symbols-outlined text-outline text-[18px]">edit</span>
+</div>
+<div class="flex items-center justify-between px-1">
+<span class="text-body-md text-on-surface-variant">Total Trips</span>
+<span class="font-h3 text-primary">20</span>
+</div>
+</div>
+</section>
+<!-- Max Capacity Card -->
+<section class="bg-white rounded-xl p-6 shadow-[0_4px_20px_rgba(55,48_163,0.04)] border border-indigo-50/50">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-secondary">airline_seat_recline_extra</span>
+<h2 class="font-label-md text-secondary uppercase">Max Capacity</h2>
+</div>
+<div class="relative">
+<input class="w-full text-h2 font-h2 text-center bg-surface-container-low border-none rounded-xl py-4 focus:ring-2 focus:ring-secondary transition-shadow" type="number" value="14"/>
+<span class="absolute right-4 top-1/2 -translate-y-1/2 text-outline font-label-sm">Seats</span>
+</div>
+<p class="text-[10px] text-center mt-2 text-outline uppercase tracking-tighter">Verified Passenger Vehicles Only</p>
+</section>
+</div>
+<!-- Main Actions -->
+<div class="pt-stack-lg">
+<button class="w-full bg-primary text-on-primary font-h3 py-4 rounded-xl shadow-lg shadow-primary/20 hover:bg-primary-container transition-all active:scale-[0.98] flex items-center justify-center gap-3">
+                Create New Trip
+                <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<button class="w-full mt-4 text-outline font-label-md py-2 hover:text-primary transition-colors">
+                Save as Draft
+            </button>
+</div>
+</div>
+</main>
+<!-- Map Preview for Desktop -->
+<div class="fixed right-8 top-32 w-80 hidden xl:block">
+<div class="bg-white rounded-2xl overflow-hidden shadow-2xl border border-indigo-50">
+<div class="h-48 bg-surface-container relative">
+<img alt="Route Preview" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAentnn9AfK9Ak_lcBdaKpoGAbDt84kWO1XrsRY2lXHUU3COxLZ3XnCMMPfeCrBJHGmLcEadE941R8nLnvxk-247QP0j0qqYj1hJ3zsYl7reHUPL5prMf4KYTKP2_Y052jwnGwN_dMtVzbPGSnXIufuGH56_ZJMMrofvE0TpFXol_zETF-RtYEZE5x9iEzq0d6Chyj1tm7prLFCvcFAk1b2FnLXQQPihB44HmstWSJcCksNVeR34-uTnK0B8pHttmRKDnBGBLE-h0o"/>
+<div class="absolute bottom-3 left-3 bg-white px-3 py-1 rounded-full text-[10px] font-bold shadow-sm flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                LIVE PREVIEW
+            </div>
+</div>
+<div class="p-4">
+<h4 class="font-label-md text-primary mb-1">Route Summary</h4>
+<div class="flex justify-between text-[12px] text-on-surface-variant">
+<span>Distance: 12.4 km</span>
+<span>Est. Time: 24 mins</span>
+</div>
+</div>
+</div>
+</div>
+<!-- BottomNavBar shared component -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_20px_rgba(55,48_163,0.08)]">
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2 hover:text-indigo-600 dark:hover:text-indigo-300 active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined">search</span>
+<span class="font-['Cairo'] text-xs font-medium">Explore</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-indigo-50 dark:bg-indigo-900/40 text-indigo-800 dark:text-indigo-200 rounded-2xl px-5 py-2 active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">directions_bus</span>
+<span class="font-['Cairo'] text-xs font-medium">My Trips</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2 hover:text-indigo-600 dark:hover:text-indigo-300 active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-['Cairo'] text-xs font-medium">Wallet</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2 hover:text-indigo-600 dark:hover:text-indigo-300 active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Cairo'] text-xs font-medium">Profile</span>
+</div>
+</nav>
+</body></html>

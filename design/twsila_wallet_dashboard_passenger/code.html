@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TWSILA - Wallet</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f9f9ff;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-on-surface": "#ebf1ff",
+                        "inverse-primary": "#c3c0ff",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "inverse-surface": "#2a313d",
+                        "secondary": "#006c4a",
+                        "background": "#f9f9ff",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "on-tertiary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "surface-dim": "#d3daea",
+                        "surface-container": "#e7eefe",
+                        "secondary-fixed-dim": "#68dba9",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-container": "#3730a3",
+                        "outline-variant": "#c8c4d5",
+                        "primary-fixed": "#e2dfff",
+                        "tertiary-container": "#603b00",
+                        "on-secondary-fixed": "#002114",
+                        "on-tertiary-fixed": "#2a1700",
+                        "surface-tint": "#544fc0",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "secondary-fixed": "#85f8c4",
+                        "on-background": "#151c27",
+                        "surface": "#f9f9ff",
+                        "secondary-container": "#82f5c1",
+                        "on-primary-fixed-variant": "#3b35a7",
+                        "surface-variant": "#dce2f3",
+                        "surface-bright": "#f9f9ff",
+                        "on-error": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-container": "#00714e",
+                        "on-tertiary-container": "#f49d09",
+                        "error": "#ba1a1a",
+                        "tertiary": "#422700",
+                        "on-secondary-fixed-variant": "#005137",
+                        "surface-container-highest": "#dce2f3",
+                        "outline": "#777584",
+                        "on-surface-variant": "#464553",
+                        "on-primary-container": "#a9a7ff",
+                        "on-primary-fixed": "#0f0069",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed": "#ffddb8",
+                        "surface-container-low": "#f0f3ff",
+                        "on-surface": "#151c27",
+                        "primary": "#1f108e",
+                        "surface-container-high": "#e2e8f8"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-margin": "24px",
+                        "gutter": "16px",
+                        "stack-md": "16px",
+                        "stack-lg": "32px",
+                        "stack-sm": "8px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "h3": ["Cairo"],
+                        "h2": ["Cairo"],
+                        "label-sm": ["Cairo"],
+                        "h1": ["Cairo"],
+                        "body-md": ["Cairo"],
+                        "label-md": ["Cairo"],
+                        "body-lg": ["Cairo"]
+                    },
+                    "fontSize": {
+                        "h3": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "h2": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "h1": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg docked full-width top-0 sticky z-50 border-b border-indigo-50 dark:border-slate-800 shadow-[0_4px_20px_rgba(55,48,163,0.04)]">
+<div class="flex justify-between items-center w-full px-6 py-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed">
+<img alt="User Profile" data-alt="professional headshot of a smiling young university passenger with a clean haircut and modern glasses" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmRFCMMOabcMQbnTdAnRuHltTYyaAQuy_zkfqU4bWzyEONGWCbg-9INqxzzAjw2aeM4AVM2QXJRab20b0ZN7g8oENkNVd9UfdAuVbzCgsJZ6fVtxyytgvpCPO_8Skp7-m57hF2mQsuSjE95DXgsX0TFM5mPNhhhkUkNL7H41p6TWrdT5unBsL5y6v5YwfFD4DXaSow6-T530ZfSt3bzNUmbj0ZM72gUuGPA9VQ2X04c9gfwFVCaQC3ata5YdcmUgrH1Brol7CXB2c"/>
+</div>
+<span class="text-xl font-black tracking-tighter text-indigo-700 dark:text-indigo-400">TWSILA</span>
+</div>
+<button class="bg-slate-50 dark:bg-slate-800/50 transition-colors active:scale-95 duration-200 px-4 py-1.5 rounded-full text-label-md text-indigo-700 dark:text-indigo-400 font-semibold">
+                Switch Role
+            </button>
+</div>
+</header>
+<main class="px-container-margin pt-stack-md flex flex-col gap-stack-lg">
+<!-- Hero Balance Card -->
+<section class="relative overflow-hidden rounded-3xl bg-primary-container p-8 shadow-[0_20px_40px_rgba(31,16,142,0.15)]">
+<div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+<div class="relative z-10">
+<p class="text-on-primary-container font-label-md text-label-md opacity-80 mb-2">Total Balance</p>
+<div class="flex items-baseline gap-2 mb-8">
+<span class="font-h1 text-h1 text-white">1,450.00</span>
+<span class="font-label-md text-label-md text-on-primary-container">EGP</span>
+</div>
+<button class="w-full bg-secondary-container hover:bg-secondary-fixed transition-all active:scale-[0.98] py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg">
+<span class="material-symbols-outlined text-on-secondary-container" data-icon="add_circle">add_circle</span>
+<span class="text-on-secondary-container font-h3 text-h3">Top Up Wallet</span>
+</button>
+</div>
+</section>
+<!-- Held Funds & Quick Stats (Bento Grid Style) -->
+<div class="grid grid-cols-2 gap-gutter">
+<div class="bg-white p-6 rounded-2xl shadow-[0_4px_20px_rgba(55,48,163,0.04)] border border-indigo-50/50">
+<div class="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-on-tertiary-container" data-icon="pending_actions">pending_actions</span>
+</div>
+<p class="font-label-md text-label-md text-outline mb-1">Held Funds</p>
+<p class="font-h3 text-h3 text-on-surface">320.00 <span class="text-label-sm font-label-sm">EGP</span></p>
+<p class="text-[10px] text-outline-variant mt-2 leading-tight">Confirmed trips pending completion</p>
+</div>
+<div class="bg-white p-6 rounded-2xl shadow-[0_4px_20px_rgba(55,48,163,0.04)] border border-indigo-50/50">
+<div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-on-secondary-container" data-icon="verified_user">verified_user</span>
+</div>
+<p class="font-label-md text-label-md text-outline mb-1">Verification</p>
+<p class="font-h3 text-h3 text-on-surface">Level 2</p>
+<div class="flex items-center gap-1 mt-2">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-[10px] text-secondary font-bold uppercase tracking-wider">TRUSTED PASSENGER</span>
+</div>
+</div>
+</div>
+<!-- Recent Transactions -->
+<section class="flex flex-col gap-4">
+<div class="flex justify-between items-center px-2">
+<h2 class="font-h2 text-h2 text-on-surface">Recent History</h2>
+<button class="text-primary font-label-md text-label-md">See All</button>
+</div>
+<div class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(55,48,163,0.04)] border border-indigo-50/50">
+<!-- Transaction Item 1 -->
+<div class="flex items-center justify-between p-5 hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="directions_bus">directions_bus</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Campus Shuttle #402</p>
+<p class="text-label-sm font-label-sm text-outline">Today, 08:30 AM</p>
+</div>
+</div>
+<p class="font-h3 text-h3 text-error">- 45.00</p>
+</div>
+<!-- Transaction Item 2 -->
+<div class="flex items-center justify-between p-5 border-t border-indigo-50/30 hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-on-secondary-container" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Top Up - Fawry</p>
+<p class="text-label-sm font-label-sm text-outline">Yesterday, 06:15 PM</p>
+</div>
+</div>
+<p class="font-h3 text-h3 text-on-secondary-container">+ 500.00</p>
+</div>
+<!-- Transaction Item 3 -->
+<div class="flex items-center justify-between p-5 border-t border-indigo-50/30 hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="directions_bus">directions_bus</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Private Commute #12</p>
+<p class="text-label-sm font-label-sm text-outline">Oct 24, 04:00 PM</p>
+</div>
+</div>
+<p class="font-h3 text-h3 text-error">- 85.00</p>
+</div>
+<!-- Transaction Item 4 -->
+<div class="flex items-center justify-between p-5 border-t border-indigo-50/30 hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-outline" data-icon="account_balance">account_balance</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Refund - Trip Canceled</p>
+<p class="text-label-sm font-label-sm text-outline">Oct 23, 09:12 AM</p>
+</div>
+</div>
+<p class="font-h3 text-h3 text-on-secondary-container">+ 45.00</p>
+</div>
+</div>
+</section>
+<!-- Security Badge -->
+<div class="flex items-center justify-center gap-3 py-6 opacity-60">
+<span class="material-symbols-outlined text-on-surface text-sm" data-icon="lock">lock</span>
+<span class="font-label-sm text-label-sm">Secured by TWSILA Financial Systems</span>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pt-2 pb-6 bg-white dark:bg-slate-900 border-t border-indigo-50 dark:border-slate-800 shadow-[0_-4px_20px_rgba(55,48,163,0.06)] rounded-t-2xl">
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="text-[11px] font-medium tracking-wide">Explore</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="directions_bus">directions_bus</span>
+<span class="text-[11px] font-medium tracking-wide">My Trips</span>
+</div>
+<div class="flex flex-col items-center justify-center text-indigo-700 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/20 rounded-xl px-3 py-1 active:scale-90 transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+<span class="text-[11px] font-medium tracking-wide">Wallet</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-[11px] font-medium tracking-wide">Profile</span>
+</div>
+</nav>
+</body></html>
