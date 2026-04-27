@@ -109,6 +109,10 @@ export const TripRouteMapView: React.FC<TripRouteMapViewProps> = ({
         initialRegion={DEFAULT_REGION}
         mapType="standard"
         showsUserLocation={false}
+        scrollEnabled={true}
+        zoomEnabled={true}
+        pitchEnabled={true}
+        rotateEnabled={true}
       >
         {line.length >= 2 ? (
           <Polyline

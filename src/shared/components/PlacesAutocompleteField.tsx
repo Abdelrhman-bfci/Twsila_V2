@@ -4,7 +4,7 @@ import {
   Text,
   TextInput,
   StyleSheet,
-  FlatList,
+  ScrollView,
   Pressable,
   ActivityIndicator,
   I18nManager,
@@ -154,13 +154,13 @@ export const PlacesAutocompleteField: React.FC<PlacesAutocompleteFieldProps> = (
 
       {open && suggestions.length > 0 ? (
         <View style={styles.list}>
-          <FlatList
-            data={suggestions}
-            keyExtractor={(item) => item.place_id}
+          <ScrollView
             keyboardShouldPersistTaps="handled"
             style={styles.flat}
-            renderItem={({ item }) => (
+          >
+            {suggestions.map((item) => (
               <Pressable
+                key={item.place_id}
                 style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
                 onPress={() => onPick(item)}
               >
@@ -186,8 +186,8 @@ export const PlacesAutocompleteField: React.FC<PlacesAutocompleteFieldProps> = (
                   color={Colors.textLight}
                 />
               </Pressable>
-            )}
-          />
+            ))}
+          </ScrollView>
         </View>
       ) : null}
     </View>

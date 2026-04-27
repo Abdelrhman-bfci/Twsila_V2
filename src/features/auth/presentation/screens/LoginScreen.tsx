@@ -83,7 +83,7 @@ export const LoginScreen: React.FC = () => {
             <View style={styles.logoCircle}>
               <Image
                 source={require('../../../../../assets/logo.png')}
-                resizeMode="contain"
+                resizeMode="cover"
                 style={styles.logoImg}
               />
             </View>
@@ -263,9 +263,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
     ...Shadows.elevated,
   },
-  logoImg: { width: 102, height: 102 },
+  logoImg: { width: 180, height: 180 },
   appName: {
     marginTop: Spacing.md,
     fontSize: 30,

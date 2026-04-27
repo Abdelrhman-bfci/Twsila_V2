@@ -29,6 +29,33 @@ const cloneTrip = (t: Trip): Trip => ({
   offers: [...t.offers],
 });
 
+const tripRelationsQuery = `
+  *,
+  stops:trip_stops(*),
+  schedule_days:trip_schedule_days(*),
+  passengers:trip_passengers(*, user:users(name, avatar_url)),
+  pricing:trip_passenger_pricing(*),
+  attendance:trip_attendance(*),
+  offers:captain_offers(*)
+`;
+
+const mapDbTripToModel = (data: any): Trip => {
+  return {
+    ...data,
+    stops: (data.stops || []).sort((a: any, b: any) => a.stop_order - b.stop_order),
+    schedule_days: (data.schedule_days || []).map((d: any) => d.day_of_week).sort(),
+    passengers: (data.passengers || []).map((p: any) => ({
+      ...p,
+      user_name: p.user?.name,
+      user_avatar: p.user?.avatar_url,
+      user: undefined,
+    })),
+    pricing: data.pricing || [],
+    attendance: data.attendance || [],
+    offers: data.offers || [],
+  } as Trip;
+};
+
 export const tripsRepository = {
   async listTrips(filters: TripSearchFilters = {}): Promise<Trip[]> {
     if (isDevMode()) {
@@ -46,14 +73,14 @@ export const tripsRepository = {
         .map(cloneTrip);
     }
 
-    let query = supabase.from('trips').select('*');
+    let query = supabase.from('trips').select(tripRelationsQuery);
     if (filters.startQuery)
       query = query.ilike('start_address', `%${filters.startQuery}%`);
     if (filters.endQuery)
       query = query.ilike('end_address', `%${filters.endQuery}%`);
     const { data, error } = await query;
     if (error) throw error;
-    return (data || []) as unknown as Trip[];
+    return (data || []).map(mapDbTripToModel);
   },
 
   async getTrip(id: string): Promise<Trip | null> {
@@ -61,9 +88,9 @@ export const tripsRepository = {
       const t = dummyTrips.find((x) => x.id === id);
       return t ? cloneTrip(t) : null;
     }
-    const { data, error } = await supabase.from('trips').select('*').eq('id', id).single();
+    const { data, error } = await supabase.from('trips').select(tripRelationsQuery).eq('id', id).single();
     if (error || !data) return null;
-    return data as unknown as Trip;
+    return mapDbTripToModel(data);
   },
 
   async listTripsForUser(userId: string): Promise<Trip[]> {
@@ -84,9 +111,9 @@ export const tripsRepository = {
     if (!ids.length) return [];
     const { data } = await supabase
       .from('trips')
-      .select('*')
+      .select(tripRelationsQuery)
       .in('id', ids);
-    return (data || []) as unknown as Trip[];
+    return (data || []).map(mapDbTripToModel);
   },
 
   async listTripsForCaptain(filters: TripSearchFilters = {}): Promise<Trip[]> {
@@ -104,12 +131,12 @@ export const tripsRepository = {
     }
     let q = supabase
       .from('trips')
-      .select('*')
+      .select(tripRelationsQuery)
       .in('status', [TripStatus.Open, TripStatus.Pricing, TripStatus.Bidding]);
     if (filters.startQuery) q = q.ilike('start_address', `%${filters.startQuery}%`);
     if (filters.endQuery) q = q.ilike('end_address', `%${filters.endQuery}%`);
     const { data } = await q;
-    return (data || []) as unknown as Trip[];
+    return (data || []).map(mapDbTripToModel);
   },
 
   async createTrip(input: CreateTripInput): Promise<Trip> {

@@ -12,6 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { Button, Input, Screen, Header, Card, Badge } from '@shared/components';
+import { PlacesAutocompleteField } from '@shared/components/PlacesAutocompleteField';
 import { Colors, Spacing, FontFamily, BorderRadius, Shadows } from '@core/theme';
 
 import { useAuth } from '@features/auth/presentation/context/AuthContext';
@@ -65,18 +66,24 @@ export const SearchScreen: React.FC = () => {
           </Text>
           <Text style={styles.heroTitle}>{t('trips.exploreSubtitle')}</Text>
 
-          <Input
-            placeholder={t('trips.pickupPlaceholder')}
-            leftIcon="location-outline"
-            value={start}
-            onChangeText={setStart}
-          />
-          <Input
-            placeholder={t('trips.dropoffPlaceholder')}
-            leftIcon="flag-outline"
-            value={end}
-            onChangeText={setEnd}
-          />
+          <View style={{ zIndex: 20, marginBottom: Spacing.md }}>
+            <PlacesAutocompleteField
+              placeholder={t('trips.pickupPlaceholder')}
+              leftIcon="location"
+              value={start}
+              onChangeAddress={setStart}
+              onPlaceResolved={(p) => setStart(p.address)}
+            />
+          </View>
+          <View style={{ zIndex: 10, marginBottom: Spacing.md }}>
+            <PlacesAutocompleteField
+              placeholder={t('trips.dropoffPlaceholder')}
+              leftIcon="flag"
+              value={end}
+              onChangeAddress={setEnd}
+              onPlaceResolved={(p) => setEnd(p.address)}
+            />
+          </View>
 
           <Button
             title={t('trips.searchTrips')}
