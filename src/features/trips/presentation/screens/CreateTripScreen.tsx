@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, Dispatch, SetStateAction } from 'react';
 import {
   View,
   Text,
@@ -23,6 +23,8 @@ import {
   Screen,
   SectionHeader,
 } from '@shared/components';
+import { PlacesAutocompleteField } from '@shared/components/PlacesAutocompleteField';
+import { TripRouteMapView, RouteMapPoint } from '@shared/components/TripRouteMapView';
 import {
   Colors,
   Spacing,
@@ -34,6 +36,11 @@ import {
   DEFAULT_DEPARTURE_TIME,
   DEFAULT_TRIP_SEATS,
 } from '@core/constants';
+import {
+  geocodeAddress,
+  hasGoogleMapsConfig,
+  ResolvedPlace,
+} from '@core/services/googleMapsApi';
 
 import { useAuth } from '@features/auth/presentation/context/AuthContext';
 import { tripsRepository } from '../../data/tripsRepository';
@@ -42,15 +49,28 @@ import { PassengerExploreStackParamList } from '@navigation/types';
 type Nav = NativeStackNavigationProp<PassengerExploreStackParamList, 'CreateTrip'>;
 type Rt = RouteProp<PassengerExploreStackParamList, 'CreateTrip'>;
 
+type RoutePoint = {
+  address: string;
+  lat?: number;
+  lng?: number;
+  placeId?: string;
+};
+
+const emptyPoint = (): RoutePoint => ({ address: '' });
+
 export const CreateTripScreen: React.FC = () => {
   const { t } = useTranslation();
   const nav = useNavigation<Nav>();
   const route = useRoute<Rt>();
   const { user } = useAuth();
 
-  const [startAddress, setStartAddress] = useState(route.params?.startQuery || '');
-  const [endAddress, setEndAddress] = useState(route.params?.endQuery || '');
-  const [stops, setStops] = useState<string[]>(['']);
+  const [start, setStart] = useState<RoutePoint>({
+    address: route.params?.startQuery || '',
+  });
+  const [end, setEnd] = useState<RoutePoint>({
+    address: route.params?.endQuery || '',
+  });
+  const [stops, setStops] = useState<RoutePoint[]>([emptyPoint()]);
   const [departureTime, setDepartureTime] = useState(DEFAULT_DEPARTURE_TIME);
   const [totalSeats, setTotalSeats] = useState(String(DEFAULT_TRIP_SEATS));
   const [selectedDates, setSelectedDates] = useState<string[]>(() =>
@@ -58,21 +78,76 @@ export const CreateTripScreen: React.FC = () => {
   );
   const [submitting, setSubmitting] = useState(false);
 
-  const setStop = (idx: number, value: string) =>
-    setStops((prev) => prev.map((s, i) => (i === idx ? value : s)));
+  const setStop = (idx: number, p: RoutePoint) =>
+    setStops((prev) => prev.map((s, i) => (i === idx ? p : s)));
 
-  const addStop = () => setStops((prev) => [...prev, '']);
+  const setStopAddress = (idx: number, address: string) =>
+    setStops((prev) => prev.map((s, i) => (i === idx ? { ...s, address } : s)));
+
+  const addStop = () => setStops((prev) => [...prev, emptyPoint()]);
   const removeStop = (idx: number) =>
-    setStops((prev) => prev.filter((_, i) => i !== idx));
+    setStops((prev) => (prev.length <= 1 ? prev : prev.filter((_, i) => i !== idx)));
 
   const { activeFrom, activeTo, scheduleDays } = useMemo(
     () => derivePeriodFromDates(selectedDates),
     [selectedDates]
   );
 
+  const mapPoints: RouteMapPoint[] = useMemo(() => {
+    const out: RouteMapPoint[] = [];
+    if (start.address.trim()) {
+      out.push({
+        type: 'start',
+        label: shortLabel(start.address),
+        lat: start.lat,
+        lng: start.lng,
+      });
+    }
+    stops.forEach((s) => {
+      if (!s.address.trim()) return;
+      out.push({
+        type: 'middle',
+        label: shortLabel(s.address),
+        lat: s.lat,
+        lng: s.lng,
+      });
+    });
+    if (end.address.trim()) {
+      out.push({
+        type: 'end',
+        label: shortLabel(end.address),
+        lat: end.lat,
+        lng: end.lng,
+      });
+    }
+    return out;
+  }, [start, end, stops]);
+
+  const applyResolved =
+    (setter: Dispatch<SetStateAction<RoutePoint>>) => (place: ResolvedPlace) => {
+      setter({
+        address: place.address,
+        lat: place.lat,
+        lng: place.lng,
+        placeId: place.placeId,
+      });
+    };
+
+  const ensurePointCoords = async (p: RoutePoint, label: string): Promise<RoutePoint> => {
+    if (p.lat != null && p.lng != null) return p;
+    if (!hasGoogleMapsConfig()) {
+      return p;
+    }
+    const g = await geocodeAddress(p.address);
+    if (!g) {
+      throw new Error(`${label}: ${t('maps.couldNotGeocode')}`);
+    }
+    return { ...p, lat: g.lat, lng: g.lng };
+  };
+
   const handleCreate = async () => {
     if (!user) return;
-    if (!startAddress.trim() || !endAddress.trim()) {
+    if (!start.address.trim() || !end.address.trim()) {
       Alert.alert(t('common.error'), t('validation.required'));
       return;
     }
@@ -82,15 +157,32 @@ export const CreateTripScreen: React.FC = () => {
     }
     setSubmitting(true);
     try {
+      const startP = await ensurePointCoords(start, t('trips.startPoint'));
+      const endP = await ensurePointCoords(end, t('trips.endPoint'));
+      const nonEmptyStops = stops.filter((s) => s.address.trim());
+      const stopResolved: RoutePoint[] = [];
+      for (let i = 0; i < nonEmptyStops.length; i++) {
+        const s = await ensurePointCoords(
+          nonEmptyStops[i],
+          t('trips.intermediateStop', { n: i + 1 })
+        );
+        stopResolved.push(s);
+      }
+
       const trip = await tripsRepository.createTrip({
         admin_id: user.id,
-        name: `${startAddress.trim()} → ${endAddress.trim()}`,
-        start_address: startAddress.trim(),
-        end_address: endAddress.trim(),
-        stops: stops
-          .map((s) => s.trim())
-          .filter(Boolean)
-          .map((address) => ({ address })),
+        name: `${startP.address.trim()} → ${endP.address.trim()}`,
+        start_address: startP.address.trim(),
+        start_lat: startP.lat,
+        start_lng: startP.lng,
+        end_address: endP.address.trim(),
+        end_lat: endP.lat,
+        end_lng: endP.lng,
+        stops: stopResolved.map((s) => ({
+          address: s.address.trim(),
+          lat: s.lat,
+          lng: s.lng,
+        })),
         schedule_days: scheduleDays,
         active_from: activeFrom,
         active_to: activeTo || undefined,
@@ -108,7 +200,11 @@ export const CreateTripScreen: React.FC = () => {
 
   return (
     <Screen background={Colors.surface}>
-      <Header title={t('trips.createTrip')} onBack={() => nav.goBack()} />
+      <Header
+        variant="branded"
+        title={t('trips.createTrip')}
+        onBack={() => nav.goBack()}
+      />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
@@ -139,12 +235,15 @@ export const CreateTripScreen: React.FC = () => {
 
               <View style={styles.routeRow}>
                 <View style={[styles.routeMarker, styles.routeMarkerStart]} />
-                <View style={{ flex: 1 }}>
-                  <Input
+                <View style={{ flex: 1, zIndex: 30 }}>
+                  <PlacesAutocompleteField
                     label={t('trips.startPoint')}
                     placeholder={t('trips.startPointPlaceholder')}
-                    value={startAddress}
-                    onChangeText={setStartAddress}
+                    value={start.address}
+                    onChangeAddress={(addr) => setStart((s) => ({ ...s, address: addr, lat: undefined, lng: undefined }))}
+                    onPlaceResolved={applyResolved(setStart)}
+                    onClearCoords={() => setStart((s) => ({ ...s, lat: undefined, lng: undefined }))}
+                    leftIcon="flag"
                   />
                 </View>
               </View>
@@ -152,27 +251,47 @@ export const CreateTripScreen: React.FC = () => {
               {stops.map((s, i) => (
                 <View key={i} style={styles.routeRow}>
                   <View style={[styles.routeMarker, styles.routeMarkerMiddle]} />
-                  <View style={{ flex: 1 }}>
-                    <Input
+                  <View style={{ flex: 1, zIndex: 25 - i }}>
+                    <PlacesAutocompleteField
                       label={t('trips.intermediateStop', { n: i + 1 })}
                       placeholder={t('trips.stopPlaceholder')}
-                      value={s}
-                      onChangeText={(v) => setStop(i, v)}
-                      rightIcon="trash-outline"
-                      onRightIconPress={() => removeStop(i)}
+                      value={s.address}
+                      onChangeAddress={(addr) => setStopAddress(i, addr)}
+                      onPlaceResolved={(place) => setStop(i, {
+                        address: place.address,
+                        lat: place.lat,
+                        lng: place.lng,
+                        placeId: place.placeId,
+                      })}
+                      onClearCoords={() =>
+                        setStop(i, { ...s, address: s.address, lat: undefined, lng: undefined })
+                      }
+                      leftIcon="pin"
                     />
+                    {stops.length > 1 ? (
+                      <Pressable
+                        style={styles.removeStopBtn}
+                        onPress={() => removeStop(i)}
+                        hitSlop={8}
+                      >
+                        <Ionicons name="trash-outline" size={18} color={Colors.textLight} />
+                      </Pressable>
+                    ) : null}
                   </View>
                 </View>
               ))}
 
               <View style={styles.routeRow}>
                 <View style={[styles.routeMarker, styles.routeMarkerEnd]} />
-                <View style={{ flex: 1 }}>
-                  <Input
+                <View style={{ flex: 1, zIndex: 20 }}>
+                  <PlacesAutocompleteField
                     label={t('trips.endPoint')}
                     placeholder={t('trips.endPointPlaceholder')}
-                    value={endAddress}
-                    onChangeText={setEndAddress}
+                    value={end.address}
+                    onChangeAddress={(addr) => setEnd((e) => ({ ...e, address: addr, lat: undefined, lng: undefined }))}
+                    onPlaceResolved={applyResolved(setEnd)}
+                    onClearCoords={() => setEnd((e) => ({ ...e, lat: undefined, lng: undefined }))}
+                    leftIcon="location"
                   />
                 </View>
               </View>
@@ -187,6 +306,9 @@ export const CreateTripScreen: React.FC = () => {
               <Text style={styles.addStopText}>{t('trips.addStop')}</Text>
             </Pressable>
           </Card>
+
+          <Text style={styles.mapSectionTitle}>{t('maps.routePreview')}</Text>
+          <TripRouteMapView points={mapPoints} height={200} />
 
           <SectionHeader
             title={t('trips.tripPeriod')}
@@ -247,6 +369,14 @@ export const CreateTripScreen: React.FC = () => {
       </KeyboardAvoidingView>
     </Screen>
   );
+};
+
+const shortLabel = (address: string): string => {
+  const t = address.trim();
+  if (!t) return '—';
+  const first = t.split(/[-•·,–—]/)[0]?.trim() || t;
+  if (first.length <= 24) return first;
+  return `${first.slice(0, 22).trim()}…`;
 };
 
 const toIso = (d: Date): string => {
@@ -312,6 +442,13 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.semiBold,
     fontSize: 13,
   },
+  mapSectionTitle: {
+    fontSize: 14,
+    color: Colors.text,
+    fontFamily: FontFamily.bold,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
   routeBuilder: {
     position: 'relative',
     paddingTop: 4,
@@ -359,6 +496,12 @@ const styles = StyleSheet.create({
     height: 16,
     borderRadius: 8,
     marginLeft: 5,
+  },
+  removeStopBtn: {
+    position: 'absolute',
+    right: 0,
+    top: 4,
+    padding: 4,
   },
   addStop: {
     flexDirection: 'row',

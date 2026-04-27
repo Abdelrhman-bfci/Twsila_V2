@@ -278,6 +278,12 @@
     "version": "Version {{version}}",
     "logoutConfirm": "Are you sure you want to sign out?"
   },
+  "maps": {
+    "addApiKeyForSearch": "Add EXPO_PUBLIC_GOOGLE_MAPS_API_KEY to .env to search places.",
+    "routePreview": "Route preview",
+    "couldNotGeocode": "Could not resolve a location. Pick an address from suggestions or check your address.",
+    "previewModeNote": "Preview mode — add a Google Maps key for a live map"
+  },
   "validation": {
     "required": "This field is required",
     "invalidNumber": "Please enter a valid number",

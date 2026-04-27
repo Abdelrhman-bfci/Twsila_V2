@@ -278,6 +278,12 @@
     "version": "الإصدار {{version}}",
     "logoutConfirm": "هل تريد تسجيل الخروج؟"
   },
+  "maps": {
+    "addApiKeyForSearch": "أضف EXPO_PUBLIC_GOOGLE_MAPS_API_KEY في ملف .env للبحث عن الأماكن.",
+    "routePreview": "معاينة المسار",
+    "couldNotGeocode": "تعذر تحديد الموقع. اختر عنواناً من الاقتراحات أو راجع العنوان.",
+    "previewModeNote": "وضع المعاينة — أضف مفتاح Google Maps للخريطة الحية"
+  },
   "validation": {
     "required": "هذا الحقل مطلوب",
     "invalidNumber": "أدخل رقماً صحيحاً",

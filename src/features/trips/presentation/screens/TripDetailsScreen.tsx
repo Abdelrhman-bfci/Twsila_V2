@@ -25,9 +25,9 @@ import {
   Button,
   RouteTimeline,
   Avatar,
-  MapPreview,
+  TripRouteMapView,
 } from '@shared/components';
-import type { MapStop } from '@shared/components';
+import type { RouteMapPoint } from '@shared/components';
 import {
   Colors,
   Spacing,
@@ -123,25 +123,22 @@ export const TripDetailsScreen: React.FC = () => {
     },
   ];
 
-  const mapStops: MapStop[] = [
+  const routeMapPoints: RouteMapPoint[] = [
     {
-      label: shortAddress(trip.start_address),
-      address: trip.start_address,
       type: 'start',
+      label: shortAddress(trip.start_address),
       lat: trip.start_lat,
       lng: trip.start_lng,
     },
     ...stops.map((s) => ({
-      label: shortAddress(s.address),
-      address: s.address,
       type: 'middle' as const,
+      label: shortAddress(s.address),
       lat: s.lat,
       lng: s.lng,
     })),
     {
-      label: shortAddress(trip.end_address),
-      address: trip.end_address,
       type: 'end',
+      label: shortAddress(trip.end_address),
       lat: trip.end_lat,
       lng: trip.end_lng,
     },
@@ -168,7 +165,7 @@ export const TripDetailsScreen: React.FC = () => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={load} />}
       >
         <View style={styles.mapWrap}>
-          <MapPreview stops={mapStops} height={220} />
+          <TripRouteMapView points={routeMapPoints} height={220} />
           <View style={styles.routeBadge}>
             <View style={styles.routeIconCol}>
               <Ionicons name="ellipse" size={10} color={Colors.primary} />

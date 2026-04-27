@@ -10,6 +10,8 @@ export * from './Header';
 export * from './Input';
 export * from './Logo';
 export * from './MapPreview';
+export * from './PlacesAutocompleteField';
+export * from './TripRouteMapView';
 export * from './RouteTimeline';
 export * from './Screen';
 export * from './SectionHeader';
