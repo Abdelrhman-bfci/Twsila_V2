@@ -88,8 +88,9 @@ export const OffersScreen: React.FC = () => {
     );
   }
 
-  const pending = trip.offers.filter((o) => o.status === OfferStatus.Pending);
-  const accepted = trip.offers.find((o) => o.status === OfferStatus.Accepted);
+  const offers = trip.offers ?? [];
+  const pending = offers.filter((o) => o.status === OfferStatus.Pending);
+  const accepted = offers.find((o) => o.status === OfferStatus.Accepted);
 
   return (
     <Screen background={Colors.surface}>

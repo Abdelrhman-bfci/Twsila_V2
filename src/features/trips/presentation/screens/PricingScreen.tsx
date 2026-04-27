@@ -59,10 +59,10 @@ export const PricingScreen: React.FC = () => {
     if (!t) return;
     setTrip(t);
     const initial: Record<string, string> = {};
-    t.passengers
+    (t.passengers ?? [])
       .filter((p) => !p.is_admin)
       .forEach((p) => {
-        const existing = t.pricing.find((x) => x.user_id === p.user_id);
+        const existing = (t.pricing ?? []).find((x) => x.user_id === p.user_id);
         initial[p.user_id] = existing?.price ? String(existing.price) : '';
       });
     setPrices(initial);
@@ -103,7 +103,7 @@ export const PricingScreen: React.FC = () => {
     );
   }
 
-  const passengers = trip.passengers.filter((p) => !p.is_admin);
+  const passengers = (trip.passengers ?? []).filter((p) => !p.is_admin);
 
   return (
     <Screen background={Colors.surface}>

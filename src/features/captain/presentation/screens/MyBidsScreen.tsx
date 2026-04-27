@@ -56,7 +56,7 @@ export const MyBidsScreen: React.FC = () => {
     const all = await tripsRepository.listTrips({});
     const mine: BidWithTrip[] = [];
     for (const trip of all) {
-      const offer = trip.offers.find((o) => o.captain_id === user.id);
+      const offer = (trip.offers ?? []).find((o) => o.captain_id === user.id);
       if (offer) mine.push({ offer, trip });
     }
     setBids(mine);

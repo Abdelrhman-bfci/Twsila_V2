@@ -60,7 +60,7 @@ export const MarketplaceScreen: React.FC = () => {
 
   const myActive = user
     ? trips.flatMap((t) =>
-        t.offers.filter(
+        (t.offers ?? []).filter(
           (o) => o.captain_id === user.id && o.status === OfferStatus.Pending
         )
       ).length
@@ -122,13 +122,13 @@ export const MarketplaceScreen: React.FC = () => {
         ) : null}
 
         {trips.map((trip) => {
-          const myOffer = trip.offers.find(
+          const myOffer = (trip.offers ?? []).find(
             (o) => o.captain_id === user?.id && o.status === OfferStatus.Pending
           );
-          const dayLabels = trip.schedule_days
+          const dayLabels = (trip.schedule_days ?? [])
             .map((d) => DAYS_OF_WEEK.find((x) => x.value === d)?.key)
             .filter(Boolean) as string[];
-          const passengersReady = trip.attendance.filter(
+          const passengersReady = (trip.attendance ?? []).filter(
             (a) => a.status === 'confirmed'
           ).length;
 
@@ -171,7 +171,7 @@ export const MarketplaceScreen: React.FC = () => {
                     <Text style={styles.metaText}>
                       {t('captain.studentsReady', {
                         ready: passengersReady,
-                        total: trip.passengers.length,
+                        total: (trip.passengers ?? []).length,
                       })}
                     </Text>
                   </View>

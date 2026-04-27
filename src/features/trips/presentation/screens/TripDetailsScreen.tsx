@@ -73,9 +73,13 @@ export const TripDetailsScreen: React.FC = () => {
     );
   }
 
+  const passengers = trip.passengers ?? [];
+  const stops = trip.stops ?? [];
+  const pricing = trip.pricing ?? [];
+
   const isAdmin = trip.admin_id === user?.id;
-  const isMember = trip.passengers.some((p) => p.user_id === user?.id);
-  const seatsLeft = Math.max(0, trip.total_seats - trip.passengers.length);
+  const isMember = passengers.some((p) => p.user_id === user?.id);
+  const seatsLeft = Math.max(0, trip.total_seats - passengers.length);
 
   const handleJoin = async () => {
     if (!user) return;
@@ -93,14 +97,16 @@ export const TripDetailsScreen: React.FC = () => {
     load();
   };
 
-  const stops = [
+  const schedDays = trip.schedule_days ?? [];
+
+  const timelineStops = [
     {
       label: t('trips.startPoint'),
       address: trip.start_address,
       type: 'start' as const,
       meta: formatTime(trip.departure_time),
     },
-    ...trip.stops.map((s) => ({
+    ...stops.map((s) => ({
       label: t('trips.intermediateStop', { n: s.stop_order + 1 }),
       address: s.address,
       type: 'middle' as const,
@@ -160,7 +166,7 @@ export const TripDetailsScreen: React.FC = () => {
             <View style={styles.metaItem}>
               <Ionicons name="people-outline" size={14} color={Colors.textLight} />
               <Text style={styles.metaText}>
-                {trip.passengers.length}/{trip.total_seats} {t('common.seats')}
+                {passengers.length}/{trip.total_seats} {t('common.seats')}
               </Text>
             </View>
             {trip.distance_km ? (
@@ -174,14 +180,14 @@ export const TripDetailsScreen: React.FC = () => {
 
         <SectionTitle title={t('trips.tripTimeline')} />
         <Card>
-          <RouteTimeline stops={stops} />
+          <RouteTimeline stops={timelineStops} />
         </Card>
 
         <SectionTitle title={t('trips.scheduleDays')} />
         <Card>
           <View style={styles.daysRow}>
             {DAYS_OF_WEEK.map((d) => {
-              const active = trip.schedule_days.includes(d.value);
+              const active = schedDays.includes(d.value);
               return (
                 <View
                   key={d.value}
@@ -212,11 +218,11 @@ export const TripDetailsScreen: React.FC = () => {
 
         <SectionTitle title={t('trips.passengers')} />
         <Card>
-          {trip.passengers.length === 0 ? (
+          {passengers.length === 0 ? (
             <Text style={styles.empty}>{t('trips.noPassengers')}</Text>
           ) : (
-            trip.passengers.map((p) => {
-              const price = trip.pricing.find((x) => x.user_id === p.user_id)?.price;
+            passengers.map((p) => {
+              const price = pricing.find((x) => x.user_id === p.user_id)?.price;
               return (
                 <View key={p.id} style={styles.passengerRow}>
                   <Avatar name={p.user_name} size={36} />

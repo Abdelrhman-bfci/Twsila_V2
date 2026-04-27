@@ -63,7 +63,7 @@ export const MyTripsScreen: React.FC = () => {
 
         {trips.map((trip) => {
           const isAdmin = trip.admin_id === user?.id;
-          const dayLabels = trip.schedule_days
+          const dayLabels = (trip.schedule_days ?? [])
             .map((d) => DAYS_OF_WEEK.find((x) => x.value === d)?.key)
             .filter(Boolean) as string[];
           return (
@@ -109,7 +109,7 @@ export const MyTripsScreen: React.FC = () => {
                   <View style={styles.metaItem}>
                     <Ionicons name="people-outline" size={14} color={Colors.textLight} />
                     <Text style={styles.metaText}>
-                      {trip.passengers.length}/{trip.total_seats}
+                      {(trip.passengers ?? []).length}/{trip.total_seats}
                     </Text>
                   </View>
                 </View>

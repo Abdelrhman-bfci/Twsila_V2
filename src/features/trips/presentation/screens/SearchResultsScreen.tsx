@@ -61,7 +61,7 @@ export const SearchResultsScreen: React.FC = () => {
   }, [load]);
 
   const seatsLeft = (trip: Trip) =>
-    Math.max(0, trip.total_seats - trip.passengers.length);
+    Math.max(0, trip.total_seats - (trip.passengers ?? []).length);
 
   return (
     <Screen background={Colors.surface}>
@@ -81,7 +81,7 @@ export const SearchResultsScreen: React.FC = () => {
       >
         {trips.map((trip) => {
           const remaining = seatsLeft(trip);
-          const dayLabels = trip.schedule_days
+          const dayLabels = (trip.schedule_days ?? [])
             .map((d) => DAYS_OF_WEEK.find((x) => x.value === d)?.key)
             .filter(Boolean) as string[];
 

@@ -80,9 +80,8 @@ export const authRepository = {
       return user;
     }
 
-    const email = `${phone.replace(/[^\d]/g, '')}@twsila-v2.app`;
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
+      phone,
       password,
     });
     if (error || !data.user) throw error || new Error('Login failed');
@@ -128,9 +127,8 @@ export const authRepository = {
       return newUser;
     }
 
-    const email = input.email || `${input.phone.replace(/[^\d]/g, '')}@twsila-v2.app`;
     const { data, error } = await supabase.auth.signUp({
-      email,
+      phone: input.phone,
       password: input.password,
     });
     if (error || !data.user) throw error || new Error('Sign-up failed');

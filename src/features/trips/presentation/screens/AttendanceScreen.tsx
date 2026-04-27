@@ -83,8 +83,8 @@ export const AttendanceScreen: React.FC = () => {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       const iso = toIsoDate(date);
-      const isScheduled = trip.schedule_days.includes(date.getDay());
-      const attendance = trip.attendance.find(
+      const isScheduled = (trip.schedule_days ?? []).includes(date.getDay());
+      const attendance = (trip.attendance ?? []).find(
         (a) => a.user_id === user.id && a.trip_date === iso
       );
       return { date, iso, isScheduled, attendance, isToday: i === 0 };
@@ -100,7 +100,7 @@ export const AttendanceScreen: React.FC = () => {
   }
 
   const selectedDay = days.find((d) => d.iso === selectedDate);
-  const myPricing = trip.pricing.find((p) => p.user_id === user.id);
+  const myPricing = (trip.pricing ?? []).find((p) => p.user_id === user.id);
   const lockedPrice =
     selectedDay?.attendance?.price_locked || myPricing?.price;
 
@@ -128,7 +128,7 @@ export const AttendanceScreen: React.FC = () => {
     }
   };
 
-  const myAttendance = trip.attendance.filter((a) => a.user_id === user.id);
+  const myAttendance = (trip.attendance ?? []).filter((a) => a.user_id === user.id);
   const confirmedCount = myAttendance.filter(
     (a) => a.status === AttendanceStatus.Confirmed
   ).length;

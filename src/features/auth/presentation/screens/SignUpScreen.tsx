@@ -42,7 +42,6 @@ export const SignUpScreen: React.FC = () => {
   const [role, setRole] = useState<UserRoleValue>(UserRole.Passenger);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [carNumber, setCarNumber] = useState('');
   const [carModel, setCarModel] = useState('');
@@ -65,7 +64,6 @@ export const SignUpScreen: React.FC = () => {
       await signUp({
         name: name.trim(),
         phone: phone.trim(),
-        email: email.trim() || undefined,
         password,
         role,
         captain:
@@ -159,15 +157,7 @@ export const SignUpScreen: React.FC = () => {
               onChangeText={setPhone}
               error={errors.phone}
             />
-            <Input
-              label={t('auth.email')}
-              placeholder={t('auth.emailPlaceholder')}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              leftIcon="mail-outline"
-              value={email}
-              onChangeText={setEmail}
-            />
+            {/* Email removed – auth is phone+password based */}
             <Input
               label={t('auth.password')}
               placeholder={t('auth.passwordPlaceholder')}
