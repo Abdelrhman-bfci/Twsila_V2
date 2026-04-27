@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View, Text } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, View, Text } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -28,9 +28,14 @@ export default function App() {
     return (
       <View style={styles.splash}>
         <View style={styles.logo}>
-          <Text style={styles.logoText}>T</Text>
+          <Image
+            source={require('./assets/logo.png')}
+            resizeMode="contain"
+            style={{ width: 120, height: 120 }}
+          />
         </View>
-        <ActivityIndicator color={Colors.primary} style={{ marginTop: 16 }} />
+        <Text style={styles.brand}>TWSILA</Text>
+        <ActivityIndicator color="#FFFFFF" style={{ marginTop: 16 }} />
       </View>
     );
   }
@@ -50,22 +55,24 @@ export default function App() {
 const styles = StyleSheet.create({
   splash: {
     flex: 1,
-    backgroundColor: Colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logo: {
-    width: 96,
-    height: 96,
-    borderRadius: 24,
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoText: {
-    fontSize: 48,
-    color: Colors.onPrimary,
-    fontFamily: FontFamily.bold,
-    fontWeight: '800',
+  logo: {
+    width: 144,
+    height: 144,
+    borderRadius: 72,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  brand: {
+    marginTop: 16,
+    fontSize: 28,
+    color: '#FFFFFF',
+    fontFamily: FontFamily.black,
+    letterSpacing: 1.5,
+    fontWeight: '900',
   },
 });

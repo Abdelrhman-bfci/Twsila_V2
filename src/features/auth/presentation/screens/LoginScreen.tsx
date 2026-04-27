@@ -8,6 +8,7 @@ import {
   ScrollView,
   Pressable,
   Alert,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -68,7 +69,7 @@ export const LoginScreen: React.FC = () => {
   };
 
   return (
-    <Screen background={Colors.surface}>
+    <Screen background={Colors.primary} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
@@ -78,109 +79,168 @@ export const LoginScreen: React.FC = () => {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.brand}>
-            <View style={styles.logo}>
-              <Ionicons name="bus" size={28} color={Colors.onPrimary} />
+          <View style={styles.brandTop}>
+            <View style={styles.logoCircle}>
+              <Image
+                source={require('../../../../../assets/logo.png')}
+                resizeMode="contain"
+                style={styles.logoImg}
+              />
             </View>
-            <Text style={styles.appName}>{t('common.appName')}</Text>
+            <Text style={styles.appName}>{t('common.appName').toUpperCase()}</Text>
             <Text style={styles.tagline}>{t('common.tagline')}</Text>
           </View>
 
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>{t('auth.welcomeBack')}</Text>
+          <View style={styles.cardWrap}>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>{t('auth.welcomeBack')}</Text>
 
-            <Input
-              label={t('auth.phone')}
-              placeholder={t('auth.phonePlaceholder')}
-              keyboardType="phone-pad"
-              autoCapitalize="none"
-              leftIcon="call-outline"
-              value={phone}
-              onChangeText={setPhone}
-              error={errors.phone}
-            />
+              <Input
+                label={t('auth.phone')}
+                placeholder={t('auth.phonePlaceholder')}
+                keyboardType="phone-pad"
+                autoCapitalize="none"
+                leftIcon="call-outline"
+                value={phone}
+                onChangeText={setPhone}
+                error={errors.phone}
+              />
 
-            <Input
-              label={t('auth.password')}
-              placeholder={t('auth.passwordPlaceholder')}
-              secureTextEntry
-              leftIcon="lock-closed-outline"
-              value={password}
-              onChangeText={setPassword}
-              error={errors.password}
-            />
+              <Input
+                label={t('auth.password')}
+                placeholder={t('auth.passwordPlaceholder')}
+                secureTextEntry
+                leftIcon="lock-closed-outline"
+                value={password}
+                onChangeText={setPassword}
+                error={errors.password}
+              />
 
-            <Pressable style={styles.forgotBtn}>
-              <Text style={styles.forgot}>{t('auth.forgotPassword')}</Text>
-            </Pressable>
+              <Pressable
+                style={styles.forgotBtn}
+                onPress={() => Alert.alert(t('auth.forgotPassword'), t('common.comingSoon'))}
+              >
+                <Text style={styles.forgot}>{t('auth.forgotPassword')}</Text>
+              </Pressable>
 
-            <Button
-              title={t('auth.signIn')}
-              loading={loading}
-              onPress={handleSignIn}
-              style={{ marginTop: Spacing.sm }}
-            />
+              <Button
+                title={t('auth.signIn')}
+                loading={loading}
+                onPress={handleSignIn}
+                size="lg"
+                style={styles.signInBtn}
+              />
 
-            <View style={styles.dividerRow}>
-              <View style={styles.divider} />
-              <Text style={styles.dividerText}>{t('auth.noAccount')}</Text>
-              <View style={styles.divider} />
+              <View style={styles.dividerRow}>
+                <View style={styles.divider} />
+                <Text style={styles.dividerText}>
+                  {t('auth.verifiedPartners')}
+                </Text>
+                <View style={styles.divider} />
+              </View>
+
+              <View style={styles.partnersRow}>
+                <Pressable style={styles.partnerBtn}>
+                  <Ionicons
+                    name="logo-google"
+                    size={18}
+                    color={Colors.text}
+                  />
+                  <Text style={styles.partnerText}>{t('auth.google')}</Text>
+                </Pressable>
+                <Pressable style={styles.partnerBtn}>
+                  <Ionicons
+                    name="git-network-outline"
+                    size={18}
+                    color={Colors.text}
+                  />
+                  <Text style={styles.partnerText}>{t('auth.uniHub')}</Text>
+                </Pressable>
+              </View>
+
+              <View style={styles.signUpRow}>
+                <Text style={styles.signUpText}>{t('auth.noAccount')} </Text>
+                <Pressable onPress={() => nav.navigate('SignUp')}>
+                  <Text style={styles.signUpLink}>{t('auth.signUp')}</Text>
+                </Pressable>
+              </View>
+
+              <View style={styles.trustRow}>
+                <View style={styles.trustItem}>
+                  <Ionicons
+                    name="shield-checkmark-outline"
+                    size={13}
+                    color={Colors.textLight}
+                  />
+                  <Text style={styles.trustText}>{t('auth.securedBy')}</Text>
+                </View>
+                <View style={styles.trustItem}>
+                  <Ionicons
+                    name="ribbon-outline"
+                    size={13}
+                    color={Colors.textLight}
+                  />
+                  <Text style={styles.trustText}>{t('auth.studentVerified')}</Text>
+                </View>
+              </View>
             </View>
 
-            <Button
-              title={t('auth.createAccount')}
-              variant="outline"
-              onPress={() => nav.navigate('SignUp')}
-            />
-          </View>
+            {isDevMode() && (
+              <View style={styles.devBanner}>
+                <View style={styles.devTopRow}>
+                  <Ionicons
+                    name="construct-outline"
+                    size={14}
+                    color={Colors.primary}
+                  />
+                  <Text style={styles.devTitle}>{t('auth.devMode')}</Text>
+                </View>
+                <Text style={styles.devSubtitle}>
+                  {t('auth.devPickAccount')}
+                </Text>
 
-          {isDevMode() && (
-            <View style={styles.devBanner}>
-              <View style={styles.devTopRow}>
-                <Ionicons name="construct-outline" size={16} color={Colors.primary} />
-                <Text style={styles.devTitle}>{t('auth.devMode')}</Text>
-              </View>
-              <Text style={styles.devSubtitle}>{t('auth.devPickAccount')}</Text>
-
-              <View style={styles.devGrid}>
-                {DEV_ACCOUNTS.map((a) => (
-                  <Pressable
-                    key={a.id}
-                    style={styles.devCard}
-                    onPress={() => quickLogin(a)}
-                  >
-                    <View
-                      style={[
-                        styles.devIcon,
-                        {
-                          backgroundColor:
-                            a.role === 'captain'
-                              ? Colors.secondarySoft
-                              : Colors.primarySoft,
-                        },
-                      ]}
+                <View style={styles.devGrid}>
+                  {DEV_ACCOUNTS.map((a) => (
+                    <Pressable
+                      key={a.id}
+                      style={styles.devCard}
+                      onPress={() => quickLogin(a)}
                     >
-                      <Ionicons
-                        name={a.role === 'captain' ? 'car-sport' : 'person'}
-                        size={16}
-                        color={
-                          a.role === 'captain' ? Colors.secondary : Colors.primary
-                        }
-                      />
-                    </View>
-                    <Text style={styles.devName} numberOfLines={1}>
-                      {a.name}
-                    </Text>
-                    <Text style={styles.devRole}>
-                      {a.role === 'captain'
-                        ? t('auth.captain')
-                        : t('auth.passenger')}
-                    </Text>
-                  </Pressable>
-                ))}
+                      <View
+                        style={[
+                          styles.devIcon,
+                          {
+                            backgroundColor:
+                              a.role === 'captain'
+                                ? Colors.secondarySoft
+                                : Colors.primarySoft,
+                          },
+                        ]}
+                      >
+                        <Ionicons
+                          name={a.role === 'captain' ? 'car-sport' : 'person'}
+                          size={14}
+                          color={
+                            a.role === 'captain'
+                              ? Colors.secondary
+                              : Colors.primary
+                          }
+                        />
+                      </View>
+                      <Text style={styles.devName} numberOfLines={1}>
+                        {a.name}
+                      </Text>
+                      <Text style={styles.devRole}>
+                        {a.role === 'captain'
+                          ? t('auth.captain')
+                          : t('auth.passenger')}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
               </View>
-            </View>
-          )}
+            )}
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </Screen>
@@ -188,30 +248,47 @@ export const LoginScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  scroll: { padding: Spacing.lg, paddingBottom: Spacing.xxl },
-  brand: { alignItems: 'center', marginTop: Spacing.lg, marginBottom: Spacing.xl },
-  logo: {
-    width: 64,
-    height: 64,
-    borderRadius: BorderRadius.lg,
+  scroll: { paddingBottom: Spacing.xxl, flexGrow: 1 },
+  brandTop: {
+    alignItems: 'center',
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
     backgroundColor: Colors.primary,
+  },
+  logoCircle: {
+    width: 124,
+    height: 124,
+    borderRadius: 62,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
     ...Shadows.elevated,
   },
+  logoImg: { width: 102, height: 102 },
   appName: {
     marginTop: Spacing.md,
-    fontSize: 28,
-    fontFamily: FontFamily.bold,
-    color: Colors.text,
+    fontSize: 30,
+    color: '#FFFFFF',
+    fontFamily: FontFamily.black,
+    letterSpacing: 1.5,
   },
   tagline: {
-    marginTop: 4,
+    marginTop: 6,
     fontSize: 13,
-    color: Colors.textSecondary,
-    fontFamily: FontFamily.regular,
+    color: 'rgba(255,255,255,0.85)',
+    fontFamily: FontFamily.medium,
     textAlign: 'center',
-    maxWidth: 280,
+  },
+  cardWrap: {
+    backgroundColor: Colors.surface,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.lg,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    marginTop: -16,
+    flex: 1,
   },
   card: {
     backgroundColor: Colors.surfaceLowest,
@@ -225,8 +302,13 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: Spacing.md,
   },
-  forgotBtn: { alignSelf: 'flex-end', marginBottom: Spacing.xs },
-  forgot: { color: Colors.primary, fontFamily: FontFamily.semiBold, fontSize: 13 },
+  forgotBtn: { alignSelf: 'flex-end', marginBottom: 4, marginTop: 2 },
+  forgot: {
+    color: Colors.primary,
+    fontFamily: FontFamily.semiBold,
+    fontSize: 13,
+  },
+  signInBtn: { marginTop: Spacing.sm },
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -235,27 +317,83 @@ const styles = StyleSheet.create({
   },
   divider: { flex: 1, height: 1, backgroundColor: Colors.borderLight },
   dividerText: {
-    fontSize: 12,
-    fontFamily: FontFamily.medium,
+    fontSize: 11,
+    fontFamily: FontFamily.bold,
     color: Colors.textLight,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+  partnersRow: { flexDirection: 'row', gap: Spacing.sm },
+  partnerBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    backgroundColor: Colors.surfaceLowest,
+  },
+  partnerText: {
+    fontSize: 14,
+    fontFamily: FontFamily.semiBold,
+    color: Colors.text,
+  },
+  signUpRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: Spacing.lg,
+  },
+  signUpText: {
+    fontSize: 13,
+    fontFamily: FontFamily.regular,
+    color: Colors.textSecondary,
+  },
+  signUpLink: {
+    fontSize: 13,
+    fontFamily: FontFamily.bold,
+    color: Colors.primary,
+    textDecorationLine: 'underline',
+  },
+  trustRow: {
+    marginTop: Spacing.md,
+    paddingTop: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.borderLight,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: Spacing.lg,
+    opacity: 0.7,
+  },
+  trustItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  trustText: {
+    fontSize: 10,
+    fontFamily: FontFamily.bold,
+    color: Colors.textLight,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   devBanner: {
-    marginTop: Spacing.lg,
+    marginTop: Spacing.md,
     padding: Spacing.md,
     borderRadius: BorderRadius.lg,
-    backgroundColor: Colors.primarySoft,
+    backgroundColor: Colors.surfaceLowest,
     borderWidth: 1,
-    borderColor: Colors.primaryFixedDim,
+    borderColor: Colors.borderLight,
+    ...Shadows.subtle,
   },
   devTopRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
   devTitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.primary,
     fontFamily: FontFamily.bold,
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   devSubtitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: Colors.textSecondary,
     fontFamily: FontFamily.regular,
     marginTop: 4,
@@ -267,22 +405,22 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
   },
   devCard: {
-    flexBasis: '48%',
+    flexBasis: '47%',
     flexGrow: 1,
     padding: Spacing.sm,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.surfaceLowest,
+    backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.borderLight,
   },
   devIcon: {
-    width: 32,
-    height: 32,
+    width: 28,
+    height: 28,
     borderRadius: BorderRadius.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.xs,
+    marginBottom: 6,
   },
-  devName: { fontSize: 13, fontFamily: FontFamily.semiBold, color: Colors.text },
-  devRole: { fontSize: 11, color: Colors.textLight, marginTop: 2 },
+  devName: { fontSize: 12, fontFamily: FontFamily.semiBold, color: Colors.text },
+  devRole: { fontSize: 10, color: Colors.textLight, marginTop: 2 },
 });

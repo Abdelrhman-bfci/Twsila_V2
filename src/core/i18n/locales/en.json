@@ -97,7 +97,12 @@
     "devModeSubtitle": "Local mock data — instant login",
     "devPickAccount": "Pick a test account",
     "loginAsPassenger": "Login as Passenger",
-    "loginAsCaptain": "Login as Captain"
+    "loginAsCaptain": "Login as Captain",
+    "verifiedPartners": "Verified Partners",
+    "google": "Google",
+    "uniHub": "Uni Hub",
+    "securedBy": "Secured by SCU",
+    "studentVerified": "Student Verified"
   },
   "trips": {
     "explore": "Explore Trips",
@@ -115,8 +120,10 @@
     "createTrip": "Create Trip",
     "tripDetails": "Trip Details",
     "tripTimeline": "Trip Timeline",
+    "routeOverview": "Route Overview",
     "tripPeriod": "Trip Period",
     "totalTrips": "Total Trips",
+    "totalDays": "Total Selected Days",
     "maxCapacity": "Max Capacity",
     "verifiedVehiclesOnly": "Verified Vehicles Only",
     "routeConfig": "Route Configuration",

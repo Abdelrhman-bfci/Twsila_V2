@@ -1,11 +1,9 @@
 import React from 'react';
-import { Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 
-import { Colors, FontFamily, Spacing, Shadows } from '@core/theme';
+import { BottomTabBar } from '@shared/components';
 
 import { SearchScreen } from '@features/trips/presentation/screens/SearchScreen';
 import { SearchResultsScreen } from '@features/trips/presentation/screens/SearchResultsScreen';
@@ -53,36 +51,8 @@ export const PassengerNavigator: React.FC = () => {
   const { t } = useTranslation();
   return (
     <Tabs.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarShowLabel: true,
-        tabBarLabelStyle: {
-          fontFamily: FontFamily.semiBold,
-          fontSize: 11,
-          marginTop: -2,
-          marginBottom: Platform.OS === 'android' ? 4 : 0,
-        },
-        tabBarStyle: {
-          backgroundColor: Colors.surfaceLowest,
-          borderTopColor: Colors.borderLight,
-          borderTopWidth: 1,
-          height: Platform.OS === 'android' ? 64 : 80,
-          paddingTop: Spacing.xs,
-          ...Shadows.subtle,
-        },
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.textLight,
-        tabBarIcon: ({ color, size, focused }) => {
-          let icon: keyof typeof Ionicons.glyphMap = 'compass-outline';
-          if (route.name === 'ExploreTab')
-            icon = focused ? 'compass' : 'compass-outline';
-          else if (route.name === 'MyTripsTab')
-            icon = focused ? 'bus' : 'bus-outline';
-          else if (route.name === 'ProfileTab')
-            icon = focused ? 'person' : 'person-outline';
-          return <Ionicons name={icon} size={size} color={color} />;
-        },
-      })}
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => <BottomTabBar {...props} />}
     >
       <Tabs.Screen
         name="ExploreTab"

@@ -97,7 +97,12 @@
     "devModeSubtitle": "بيانات وهمية محلية — دخول فوري",
     "devPickAccount": "اختر حساب اختبار",
     "loginAsPassenger": "دخول كراكب",
-    "loginAsCaptain": "دخول ككابتن"
+    "loginAsCaptain": "دخول ككابتن",
+    "verifiedPartners": "شركاء موثوقون",
+    "google": "Google",
+    "uniHub": "Uni Hub",
+    "securedBy": "محمي بواسطة SCU",
+    "studentVerified": "طالب موثق"
   },
   "trips": {
     "explore": "استكشف الرحلات",
@@ -115,8 +120,10 @@
     "createTrip": "إنشاء رحلة",
     "tripDetails": "تفاصيل الرحلة",
     "tripTimeline": "خط سير الرحلة",
+    "routeOverview": "نظرة عامة على الطريق",
     "tripPeriod": "مدة الرحلة",
     "totalTrips": "إجمالي الرحلات",
+    "totalDays": "إجمالي الأيام المختارة",
     "maxCapacity": "السعة القصوى",
     "verifiedVehiclesOnly": "مركبات موثوقة فقط",
     "routeConfig": "إعدادات الطريق",

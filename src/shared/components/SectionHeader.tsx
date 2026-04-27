@@ -1,7 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, FontFamily, Spacing } from '@core/theme';
+import { BorderRadius, Colors, FontFamily, Spacing } from '@core/theme';
 
 interface SectionHeaderProps {
   title: string;
@@ -9,6 +16,8 @@ interface SectionHeaderProps {
   actionLabel?: string;
   actionIcon?: keyof typeof Ionicons.glyphMap;
   onActionPress?: () => void;
+  leadingIcon?: keyof typeof Ionicons.glyphMap;
+  style?: StyleProp<ViewStyle>;
 }
 
 export const SectionHeader: React.FC<SectionHeaderProps> = ({
@@ -17,8 +26,15 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   actionLabel,
   actionIcon,
   onActionPress,
+  leadingIcon,
+  style,
 }) => (
-  <View style={styles.container}>
+  <View style={[styles.container, style]}>
+    {leadingIcon ? (
+      <View style={styles.leadingIcon}>
+        <Ionicons name={leadingIcon} size={18} color={Colors.primary} />
+      </View>
+    ) : null}
     <View style={{ flex: 1 }}>
       <Text style={styles.title}>{title}</Text>
       {caption ? <Text style={styles.caption}>{caption}</Text> : null}
@@ -41,6 +57,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: Spacing.sm,
     gap: Spacing.sm,
+  },
+  leadingIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     fontSize: 18,

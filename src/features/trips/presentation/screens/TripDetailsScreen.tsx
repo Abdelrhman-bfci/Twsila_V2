@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Pressable,
   RefreshControl,
   Alert,
 } from 'react-native';
@@ -26,7 +25,9 @@ import {
   Button,
   RouteTimeline,
   Avatar,
+  MapPreview,
 } from '@shared/components';
+import type { MapStop } from '@shared/components';
 import {
   Colors,
   Spacing,
@@ -122,6 +123,30 @@ export const TripDetailsScreen: React.FC = () => {
     },
   ];
 
+  const mapStops: MapStop[] = [
+    {
+      label: shortAddress(trip.start_address),
+      address: trip.start_address,
+      type: 'start',
+      lat: trip.start_lat,
+      lng: trip.start_lng,
+    },
+    ...stops.map((s) => ({
+      label: shortAddress(s.address),
+      address: s.address,
+      type: 'middle' as const,
+      lat: s.lat,
+      lng: s.lng,
+    })),
+    {
+      label: shortAddress(trip.end_address),
+      address: trip.end_address,
+      type: 'end',
+      lat: trip.end_lat,
+      lng: trip.end_lng,
+    },
+  ];
+
   return (
     <Screen background={Colors.surface}>
       <Header
@@ -142,6 +167,28 @@ export const TripDetailsScreen: React.FC = () => {
         contentContainerStyle={styles.scroll}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={load} />}
       >
+        <View style={styles.mapWrap}>
+          <MapPreview stops={mapStops} height={220} />
+          <View style={styles.routeBadge}>
+            <View style={styles.routeIconCol}>
+              <Ionicons name="ellipse" size={10} color={Colors.primary} />
+              <View style={styles.routeIconLine} />
+              <Ionicons name="location" size={12} color={Colors.secondary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.routeBadgeLabel}>
+                {t('trips.routeOverview')}
+              </Text>
+              <Text
+                style={styles.routeBadgeTitle}
+                numberOfLines={1}
+              >
+                {shortAddress(trip.start_address)} → {shortAddress(trip.end_address)}
+              </Text>
+            </View>
+          </View>
+        </View>
+
         <Card style={styles.heroCard}>
           <View style={styles.heroTop}>
             <Avatar name={trip.admin_name} size={44} />
@@ -303,8 +350,48 @@ const SectionTitle: React.FC<{ title: string }> = ({ title }) => (
   <Text style={styles.sectionTitle}>{title}</Text>
 );
 
+const shortAddress = (address?: string): string => {
+  if (!address) return '—';
+  const first = address.split(/[-•·,–—]/)[0]?.trim() || address;
+  if (first.length <= 26) return first;
+  return `${first.slice(0, 24).trim()}…`;
+};
+
 const styles = StyleSheet.create({
   scroll: { padding: Spacing.lg, paddingBottom: Spacing.xxl },
+  mapWrap: {
+    marginBottom: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    overflow: 'visible',
+  },
+  routeBadge: {
+    position: 'absolute',
+    bottom: Spacing.sm,
+    left: Spacing.sm,
+    right: Spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.sm,
+    ...Shadows.card,
+  },
+  routeIconCol: { alignItems: 'center', gap: 2, paddingTop: 2 },
+  routeIconLine: { width: 2, height: 12, backgroundColor: Colors.primaryFixedDim },
+  routeBadgeLabel: {
+    fontSize: 10,
+    color: Colors.textLight,
+    fontFamily: FontFamily.semiBold,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
+  routeBadgeTitle: {
+    fontSize: 13,
+    color: Colors.text,
+    fontFamily: FontFamily.bold,
+    marginTop: 2,
+  },
   heroCard: { gap: Spacing.sm, ...Shadows.card },
   heroTop: {
     flexDirection: 'row',

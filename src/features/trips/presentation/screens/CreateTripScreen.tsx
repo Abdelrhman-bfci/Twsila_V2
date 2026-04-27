@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -16,8 +16,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import {
   Button,
+  Calendar,
   Card,
-  DayChip,
   Header,
   Input,
   Screen,
@@ -31,7 +31,6 @@ import {
   Shadows,
 } from '@core/theme';
 import {
-  DAYS_OF_WEEK,
   DEFAULT_DEPARTURE_TIME,
   DEFAULT_TRIP_SEATS,
 } from '@core/constants';
@@ -54,17 +53,10 @@ export const CreateTripScreen: React.FC = () => {
   const [stops, setStops] = useState<string[]>(['']);
   const [departureTime, setDepartureTime] = useState(DEFAULT_DEPARTURE_TIME);
   const [totalSeats, setTotalSeats] = useState(String(DEFAULT_TRIP_SEATS));
-  const [scheduleDays, setScheduleDays] = useState<number[]>([0, 1, 2, 3, 4]);
-  const [activeFrom, setActiveFrom] = useState(toIso(new Date()));
-  const [activeTo, setActiveTo] = useState(
-    toIso(addMonths(new Date(), 1))
+  const [selectedDates, setSelectedDates] = useState<string[]>(() =>
+    defaultMonthSelection()
   );
   const [submitting, setSubmitting] = useState(false);
-
-  const toggleDay = (d: number) =>
-    setScheduleDays((prev) =>
-      prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d].sort()
-    );
 
   const setStop = (idx: number, value: string) =>
     setStops((prev) => prev.map((s, i) => (i === idx ? value : s)));
@@ -73,13 +65,18 @@ export const CreateTripScreen: React.FC = () => {
   const removeStop = (idx: number) =>
     setStops((prev) => prev.filter((_, i) => i !== idx));
 
+  const { activeFrom, activeTo, scheduleDays } = useMemo(
+    () => derivePeriodFromDates(selectedDates),
+    [selectedDates]
+  );
+
   const handleCreate = async () => {
     if (!user) return;
     if (!startAddress.trim() || !endAddress.trim()) {
       Alert.alert(t('common.error'), t('validation.required'));
       return;
     }
-    if (!scheduleDays.length) {
+    if (!selectedDates.length) {
       Alert.alert(t('common.error'), t('trips.scheduleSubtitle'));
       return;
     }
@@ -132,129 +129,170 @@ export const CreateTripScreen: React.FC = () => {
             </Text>
           </View>
 
-          <SectionHeader title={t('trips.routeConfig')} />
+          <SectionHeader
+            title={t('trips.routeConfig')}
+            leadingIcon="location-outline"
+          />
           <Card>
-            <Input
-              label={t('trips.startPoint')}
-              placeholder={t('trips.startPointPlaceholder')}
-              leftIcon="location-outline"
-              value={startAddress}
-              onChangeText={setStartAddress}
-            />
-            {stops.map((s, i) => (
-              <View key={i} style={styles.stopRow}>
+            <View style={styles.routeBuilder}>
+              <View style={styles.routeLine} />
+
+              <View style={styles.routeRow}>
+                <View style={[styles.routeMarker, styles.routeMarkerStart]} />
                 <View style={{ flex: 1 }}>
                   <Input
-                    label={t('trips.intermediateStop', { n: i + 1 })}
-                    placeholder={t('trips.stopPlaceholder')}
-                    leftIcon="ellipse-outline"
-                    value={s}
-                    onChangeText={(v) => setStop(i, v)}
+                    label={t('trips.startPoint')}
+                    placeholder={t('trips.startPointPlaceholder')}
+                    value={startAddress}
+                    onChangeText={setStartAddress}
                   />
                 </View>
-                <Pressable
-                  style={styles.stopRemove}
-                  onPress={() => removeStop(i)}
-                  hitSlop={6}
-                >
-                  <Ionicons name="trash-outline" size={18} color={Colors.error} />
-                </Pressable>
               </View>
-            ))}
+
+              {stops.map((s, i) => (
+                <View key={i} style={styles.routeRow}>
+                  <View style={[styles.routeMarker, styles.routeMarkerMiddle]} />
+                  <View style={{ flex: 1 }}>
+                    <Input
+                      label={t('trips.intermediateStop', { n: i + 1 })}
+                      placeholder={t('trips.stopPlaceholder')}
+                      value={s}
+                      onChangeText={(v) => setStop(i, v)}
+                      rightIcon="trash-outline"
+                      onRightIconPress={() => removeStop(i)}
+                    />
+                  </View>
+                </View>
+              ))}
+
+              <View style={styles.routeRow}>
+                <View style={[styles.routeMarker, styles.routeMarkerEnd]} />
+                <View style={{ flex: 1 }}>
+                  <Input
+                    label={t('trips.endPoint')}
+                    placeholder={t('trips.endPointPlaceholder')}
+                    value={endAddress}
+                    onChangeText={setEndAddress}
+                  />
+                </View>
+              </View>
+            </View>
+
             <Pressable style={styles.addStop} onPress={addStop}>
-              <Ionicons name="add-circle-outline" size={18} color={Colors.primary} />
+              <Ionicons
+                name="add-circle"
+                size={18}
+                color={Colors.primary}
+              />
               <Text style={styles.addStopText}>{t('trips.addStop')}</Text>
             </Pressable>
-
-            <Input
-              label={t('trips.endPoint')}
-              placeholder={t('trips.endPointPlaceholder')}
-              leftIcon="flag-outline"
-              value={endAddress}
-              onChangeText={setEndAddress}
-            />
           </Card>
 
           <SectionHeader
-            title={t('trips.scheduleDays')}
+            title={t('trips.tripPeriod')}
             caption={t('trips.scheduleSubtitle')}
+            leadingIcon="calendar"
             style={{ marginTop: Spacing.md }}
           />
-          <Card>
-            <View style={styles.daysRow}>
-              {DAYS_OF_WEEK.map((d) => (
-                <DayChip
-                  key={d.value}
-                  label={t(`days.${d.key}`)}
-                  selected={scheduleDays.includes(d.value)}
-                  onPress={() => toggleDay(d.value)}
-                />
-              ))}
-            </View>
+          <Calendar
+            selectedDates={selectedDates}
+            onChange={setSelectedDates}
+            minDate={new Date()}
+          />
+          <View style={styles.scheduleSummary}>
+            <Text style={styles.scheduleSummaryLabel}>
+              {t('trips.totalDays')}
+            </Text>
+            <Text style={styles.scheduleSummaryValue}>
+              {selectedDates.length}
+            </Text>
+          </View>
 
-            <View style={styles.row2}>
-              <View style={{ flex: 1 }}>
-                <Input
-                  label={t('trips.activeFrom')}
-                  leftIcon="calendar-outline"
-                  value={activeFrom}
-                  onChangeText={setActiveFrom}
-                  placeholder="YYYY-MM-DD"
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Input
-                  label={t('trips.activeTo')}
-                  leftIcon="calendar-outline"
-                  value={activeTo}
-                  onChangeText={setActiveTo}
-                  placeholder="YYYY-MM-DD"
-                />
-              </View>
+          <View style={styles.row2}>
+            <View style={{ flex: 1 }}>
+              <Input
+                label={t('trips.departureTime')}
+                leftIcon="time-outline"
+                value={departureTime}
+                onChangeText={setDepartureTime}
+                placeholder="HH:MM"
+              />
             </View>
-
-            <View style={styles.row2}>
-              <View style={{ flex: 1 }}>
-                <Input
-                  label={t('trips.departureTime')}
-                  leftIcon="time-outline"
-                  value={departureTime}
-                  onChangeText={setDepartureTime}
-                  placeholder="HH:MM"
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Input
-                  label={t('trips.maxCapacity')}
-                  leftIcon="people-outline"
-                  value={totalSeats}
-                  onChangeText={setTotalSeats}
-                  keyboardType="number-pad"
-                />
-              </View>
+            <View style={{ flex: 1 }}>
+              <Input
+                label={t('trips.maxCapacity')}
+                leftIcon="people-outline"
+                value={totalSeats}
+                onChangeText={setTotalSeats}
+                keyboardType="number-pad"
+              />
             </View>
-          </Card>
+          </View>
 
           <Button
             title={t('trips.createTripCta')}
             onPress={handleCreate}
             loading={submitting}
-            style={{ marginTop: Spacing.lg }}
-            leftIcon={
-              <Ionicons name="checkmark-circle-outline" size={18} color={Colors.onPrimary} />
+            size="lg"
+            style={{ marginTop: Spacing.md }}
+            rightIcon={
+              <Ionicons name="arrow-forward" size={18} color={Colors.onPrimary} />
             }
           />
+
+          <Pressable style={styles.draftBtn}>
+            <Text style={styles.draftBtnText}>{t('trips.saveAsDraft')}</Text>
+          </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
     </Screen>
   );
 };
 
-const toIso = (d: Date) => d.toISOString().split('T')[0];
-const addMonths = (d: Date, n: number) => {
-  const x = new Date(d);
-  x.setMonth(x.getMonth() + n);
-  return x;
+const toIso = (d: Date): string => {
+  const y = d.getFullYear();
+  const m = `${d.getMonth() + 1}`.padStart(2, '0');
+  const day = `${d.getDate()}`.padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+const defaultMonthSelection = (): string[] => {
+  const today = new Date();
+  const out: string[] = [];
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+  const cursor = new Date(Math.max(today.getTime(), startOfMonth.getTime()));
+  while (cursor <= endOfMonth) {
+    const dow = cursor.getDay();
+    if (dow >= 0 && dow <= 4) out.push(toIso(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return out;
+};
+
+const derivePeriodFromDates = (dates: string[]) => {
+  if (!dates.length) {
+    const today = new Date();
+    const inAMonth = new Date(today);
+    inAMonth.setMonth(inAMonth.getMonth() + 1);
+    return {
+      activeFrom: toIso(today),
+      activeTo: toIso(inAMonth),
+      scheduleDays: [0, 1, 2, 3, 4],
+    };
+  }
+  const sorted = [...dates].sort();
+  const days = new Set<number>();
+  sorted.forEach((iso) => {
+    const d = new Date(iso);
+    days.add(d.getDay());
+  });
+  return {
+    activeFrom: sorted[0],
+    activeTo: sorted[sorted.length - 1],
+    scheduleDays: Array.from(days).sort(),
+  };
 };
 
 const styles = StyleSheet.create({
@@ -274,32 +312,97 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.semiBold,
     fontSize: 13,
   },
-  stopRow: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.xs },
-  stopRemove: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.errorSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 28,
+  routeBuilder: {
+    position: 'relative',
+    paddingTop: 4,
+  },
+  routeLine: {
+    position: 'absolute',
+    left: 13,
+    top: 28,
+    bottom: 28,
+    width: 2,
+    backgroundColor: Colors.primaryFixedDim,
+    opacity: 0.7,
+    borderRadius: 1,
+  },
+  routeRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+  },
+  routeMarker: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    marginTop: 30,
+    marginLeft: 6,
+    backgroundColor: Colors.primaryFixedDim,
+  },
+  routeMarkerStart: {
+    backgroundColor: Colors.primary,
+    borderWidth: 4,
+    borderColor: Colors.primaryFixed,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    marginLeft: 5,
+  },
+  routeMarkerMiddle: {
+    backgroundColor: Colors.primaryLight,
+  },
+  routeMarkerEnd: {
+    backgroundColor: Colors.secondary,
+    borderWidth: 4,
+    borderColor: Colors.secondaryFixed,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    marginLeft: 5,
   },
   addStop: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
     paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    alignSelf: 'flex-start',
+    marginLeft: 30,
+    marginTop: 4,
+    borderRadius: BorderRadius.md,
   },
   addStopText: {
-    fontFamily: FontFamily.semiBold,
+    fontFamily: FontFamily.bold,
     fontSize: 13,
     color: Colors.primary,
   },
-  daysRow: {
+  scheduleSummary: {
+    marginTop: Spacing.sm,
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.xs,
-    marginBottom: Spacing.md,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.sm,
   },
-  row2: { flexDirection: 'row', gap: Spacing.sm },
+  scheduleSummaryLabel: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    fontFamily: FontFamily.semiBold,
+  },
+  scheduleSummaryValue: {
+    fontSize: 18,
+    color: Colors.primary,
+    fontFamily: FontFamily.bold,
+  },
+  row2: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.md },
+  draftBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    marginTop: Spacing.xs,
+  },
+  draftBtnText: {
+    color: Colors.textLight,
+    fontFamily: FontFamily.semiBold,
+    fontSize: 14,
+  },
 });
