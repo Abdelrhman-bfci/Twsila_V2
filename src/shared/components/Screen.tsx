@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing } from '@core/theme';
+import { useResponsiveLayout } from '@shared/hooks/useResponsiveLayout';
 
 interface ScreenProps {
   children: React.ReactNode;
@@ -20,6 +21,12 @@ interface ScreenProps {
   scrollProps?: ScrollViewProps;
   style?: StyleProp<ViewStyle>;
   padded?: boolean;
+  /**
+   * When true, content is centered horizontally and capped at the responsive
+   * `contentMaxWidth`. Use this for screens with structured content (forms,
+   * dashboards, lists) that should look balanced on tablet & landscape.
+   */
+  centered?: boolean;
 }
 
 export const Screen: React.FC<ScreenProps> = ({
@@ -31,7 +38,19 @@ export const Screen: React.FC<ScreenProps> = ({
   scrollProps,
   style,
   padded = false,
+  centered = false,
 }) => {
+  const { contentMaxWidth, isCompact } = useResponsiveLayout();
+
+  const centeredWrapper: ViewStyle | null =
+    centered && !isCompact
+      ? {
+          maxWidth: contentMaxWidth,
+          width: '100%',
+          alignSelf: 'center',
+        }
+      : null;
+
   return (
     <SafeAreaView edges={edges} style={[{ flex: 1, backgroundColor: background }, style]}>
       <StatusBar barStyle="dark-content" backgroundColor={background} />
@@ -39,6 +58,7 @@ export const Screen: React.FC<ScreenProps> = ({
         <ScrollView
           contentContainerStyle={[
             padded && styles.padded,
+            centeredWrapper,
             contentContainerStyle,
           ]}
           showsVerticalScrollIndicator={false}
@@ -48,7 +68,7 @@ export const Screen: React.FC<ScreenProps> = ({
           {children}
         </ScrollView>
       ) : (
-        <View style={[{ flex: 1 }, padded && styles.padded, contentContainerStyle]}>
+        <View style={[{ flex: 1 }, padded && styles.padded, centeredWrapper, contentContainerStyle]}>
           {children}
         </View>
       )}

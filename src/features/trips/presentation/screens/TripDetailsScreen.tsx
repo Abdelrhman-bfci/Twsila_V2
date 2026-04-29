@@ -5,11 +5,9 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
-  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { Share } from 'react-native';
 import { shareTrip } from '@core/utils/sharing';
 import {
   useNavigation,
@@ -20,16 +18,22 @@ import {
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import {
-  Screen,
-  Header,
-  Card,
-  Badge,
-  Button,
-  RouteTimeline,
   Avatar,
+  Badge,
+  Banner,
+  Button,
+  Card,
+  ErrorState,
+  Header,
+  RouteTimeline,
+  Screen,
+  SectionHeader,
+  Skeleton,
+  StatTile,
   TripRouteMapView,
 } from '@shared/components';
 import type { RouteMapPoint } from '@shared/components';
+import { useResponsiveLayout } from '@shared/hooks';
 import {
   Colors,
   Spacing,
@@ -48,30 +52,156 @@ import { PassengerExploreStackParamList } from '@navigation/types';
 type Nav = NativeStackNavigationProp<PassengerExploreStackParamList, 'TripDetails'>;
 type Rt = RouteProp<PassengerExploreStackParamList, 'TripDetails'>;
 
+type Status = 'loading' | 'success' | 'error' | 'notFound';
+
 export const TripDetailsScreen: React.FC = () => {
   const { t } = useTranslation();
   const nav = useNavigation<Nav>();
   const route = useRoute<Rt>();
   const { user } = useAuth();
+  const layout = useResponsiveLayout();
   const { tripId } = route.params;
 
   const [trip, setTrip] = useState<Trip | null>(null);
+  const [status, setStatus] = useState<Status>('loading');
   const [refreshing, setRefreshing] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [actionMsg, setActionMsg] = useState<{
+    tone: 'success' | 'error';
+    text: string;
+  } | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  const load = useCallback(async () => {
-    setRefreshing(true);
-    const t = await tripsRepository.getTrip(tripId);
-    setTrip(t);
-    setRefreshing(false);
-  }, [tripId]);
+  const load = useCallback(
+    async (mode: 'initial' | 'refresh' = 'initial') => {
+      if (mode === 'refresh') setRefreshing(true);
+      else setStatus('loading');
+      try {
+        const data = await tripsRepository.getTrip(tripId);
+        if (!data) {
+          setStatus('notFound');
+          return;
+        }
+        setTrip(data);
+        setStatus('success');
+        setErrorMsg(null);
+      } catch (e) {
+        setErrorMsg(e instanceof Error ? e.message : t('errors.network'));
+        setStatus('error');
+      } finally {
+        setRefreshing(false);
+      }
+    },
+    [tripId, t]
+  );
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
-  useEffect(() => { load(); }, [load]);
+  useFocusEffect(
+    useCallback(() => {
+      load('initial');
+    }, [load])
+  );
+  useEffect(() => {
+    load('initial');
+  }, [load]);
 
-  if (!trip) {
+  const handleJoin = async () => {
+    if (!user || !trip) return;
+    setBusy(true);
+    try {
+      await tripsRepository.joinTrip(trip.id, user.id);
+      setActionMsg({ tone: 'success', text: t('trips.joinSuccess') });
+      await load('initial');
+    } catch (err) {
+      setActionMsg({
+        tone: 'error',
+        text: err instanceof Error ? err.message : t('errors.actionFailed'),
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleLeave = async () => {
+    if (!user || !trip) return;
+    setBusy(true);
+    try {
+      await tripsRepository.leaveTrip(trip.id, user.id);
+      setActionMsg({ tone: 'success', text: t('trips.leaveSuccess') });
+      await load('initial');
+    } catch (err) {
+      setActionMsg({
+        tone: 'error',
+        text: err instanceof Error ? err.message : t('errors.actionFailed'),
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleShare = () => {
+    if (trip) shareTrip(trip, t);
+  };
+
+  if (status === 'loading') {
     return (
-      <Screen>
-        <Header title={t('common.loading')} onBack={() => nav.goBack()} />
+      <Screen background={Colors.surface}>
+        <Header title={t('trips.tripDetails')} onBack={() => nav.goBack()} />
+        <ScrollView contentContainerStyle={styles.scroll}>
+          <Skeleton height={220} radius={BorderRadius.lg} />
+          <View style={{ height: Spacing.md }} />
+          <Card>
+            <View style={styles.skelRow}>
+              <Skeleton width={44} height={44} radius={BorderRadius.pill} />
+              <View style={{ flex: 1, gap: 6 }}>
+                <Skeleton width="40%" height={10} />
+                <Skeleton width="60%" height={14} />
+              </View>
+            </View>
+            <View style={{ height: Spacing.sm }} />
+            <Skeleton width="100%" height={12} />
+            <View style={{ height: 6 }} />
+            <Skeleton width="80%" height={12} />
+          </Card>
+          <View style={{ height: Spacing.md }} />
+          <Card>
+            <Skeleton width="50%" height={14} />
+            <View style={{ height: Spacing.sm }} />
+            <Skeleton width="100%" height={10} />
+            <View style={{ height: 6 }} />
+            <Skeleton width="90%" height={10} />
+            <View style={{ height: 6 }} />
+            <Skeleton width="80%" height={10} />
+          </Card>
+        </ScrollView>
+      </Screen>
+    );
+  }
+
+  if (status === 'notFound') {
+    return (
+      <Screen background={Colors.surface}>
+        <Header title={t('trips.tripDetails')} onBack={() => nav.goBack()} />
+        <ErrorState
+          icon="map-outline"
+          title={t('errors.tripNotFound')}
+          description={t('errors.tripNotFoundSubtitle')}
+          retryLabel={t('common.retry')}
+          onRetry={() => load('initial')}
+        />
+      </Screen>
+    );
+  }
+
+  if (status === 'error' || !trip) {
+    return (
+      <Screen background={Colors.surface}>
+        <Header title={t('trips.tripDetails')} onBack={() => nav.goBack()} />
+        <ErrorState
+          title={t('errors.loadFailed')}
+          description={errorMsg ?? t('errors.loadFailedSubtitle')}
+          retryLabel={t('common.retry')}
+          onRetry={() => load('initial')}
+        />
       </Screen>
     );
   }
@@ -83,27 +213,6 @@ export const TripDetailsScreen: React.FC = () => {
   const isAdmin = trip.admin_id === user?.id;
   const isMember = passengers.some((p) => p.user_id === user?.id);
   const seatsLeft = Math.max(0, trip.total_seats - passengers.length);
-
-  const handleJoin = async () => {
-    if (!user) return;
-    try {
-      await tripsRepository.joinTrip(trip.id, user.id);
-      load();
-    } catch (err) {
-      Alert.alert(t('common.error'), err instanceof Error ? err.message : '');
-    }
-  };
-
-  const handleLeave = async () => {
-    if (!user || isAdmin) return;
-    await tripsRepository.leaveTrip(trip.id, user.id);
-    load();
-  };
-
-  const handleShare = () => {
-    shareTrip(trip, t);
-  };
-
   const schedDays = trip.schedule_days ?? [];
 
   const timelineStops = [
@@ -117,9 +226,7 @@ export const TripDetailsScreen: React.FC = () => {
       label: t('trips.intermediateStop', { n: s.stop_order + 1 }),
       address: s.address,
       type: 'middle' as const,
-      meta: s.distance_from_start_km
-        ? `${s.distance_from_start_km} km`
-        : undefined,
+      meta: s.distance_from_start_km ? `${s.distance_from_start_km} km` : undefined,
     })),
     {
       label: t('trips.endPoint'),
@@ -150,26 +257,294 @@ export const TripDetailsScreen: React.FC = () => {
     },
   ];
 
+  const StatusBadge = (
+    <Badge
+      label={t(`trips.status.${trip.status}`)}
+      tone={
+        trip.status === TripStatus.Assigned
+          ? 'success'
+          : trip.status === TripStatus.Bidding
+          ? 'warning'
+          : 'primary'
+      }
+      icon={
+        trip.status === TripStatus.Assigned ? 'checkmark-circle' : undefined
+      }
+    />
+  );
+
+  const HeroCard = (
+    <Card style={styles.heroCard}>
+      <View style={styles.heroTop}>
+        <Avatar name={trip.admin_name} size={44} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.heroAdminLabel}>{t('trips.tripAdmin')}</Text>
+          <Text style={styles.heroAdminName}>{trip.admin_name || '—'}</Text>
+        </View>
+        {isAdmin ? (
+          <Badge
+            label={t('trips.youAreAdmin')}
+            tone="primary"
+            icon="shield-checkmark"
+            size="sm"
+          />
+        ) : null}
+      </View>
+
+      <View style={styles.statsRow}>
+        <StatTile
+          label={t('trips.departureTime')}
+          value={formatTime(trip.departure_time)}
+          icon="time-outline"
+        />
+        <StatTile
+          label={t('common.seats')}
+          value={`${passengers.length}/${trip.total_seats}`}
+          caption={
+            seatsLeft === 0
+              ? t('trips.tripFull')
+              : seatsLeft === 1
+              ? t('trips.seatLeft')
+              : t('trips.seatsLeft', { count: seatsLeft })
+          }
+          icon="people-outline"
+          tone={seatsLeft === 0 ? 'warning' : 'primary'}
+        />
+        {trip.distance_km ? (
+          <StatTile
+            label={t('captain.totalDistance')}
+            value={`${trip.distance_km} ${t('common.km')}`}
+            icon="map-outline"
+            tone="neutral"
+          />
+        ) : null}
+      </View>
+    </Card>
+  );
+
+  const TimelineCard = (
+    <View>
+      <SectionHeader title={t('trips.tripTimeline')} leadingIcon="git-branch-outline" />
+      <Card>
+        <RouteTimeline stops={timelineStops} />
+      </Card>
+    </View>
+  );
+
+  const ScheduleCard = (
+    <View>
+      <SectionHeader title={t('trips.scheduleDays')} leadingIcon="calendar-outline" />
+      <Card>
+        <View style={styles.daysRow}>
+          {DAYS_OF_WEEK.map((d) => {
+            const active = schedDays.includes(d.value);
+            return (
+              <View
+                key={d.value}
+                style={[
+                  styles.dayChip,
+                  active && {
+                    backgroundColor: Colors.primary,
+                    borderColor: Colors.primary,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.dayChipText,
+                    active && { color: Colors.onPrimary },
+                  ]}
+                >
+                  {t(`days.${d.key}`)}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+        <Text style={styles.dateHint}>
+          <Ionicons name="calendar-clear-outline" size={11} /> {trip.active_from}
+          {' → '}
+          {trip.active_to || '—'}
+        </Text>
+      </Card>
+    </View>
+  );
+
+  const PassengersCard = (
+    <View>
+      <SectionHeader
+        title={t('trips.passengers')}
+        caption={`${passengers.length}/${trip.total_seats}`}
+        leadingIcon="people-outline"
+      />
+      <Card>
+        {passengers.length === 0 ? (
+          <Text style={styles.empty}>{t('trips.noPassengers')}</Text>
+        ) : (
+          passengers.map((p, idx) => {
+            const price = pricing.find((x) => x.user_id === p.user_id)?.price;
+            return (
+              <View
+                key={p.id}
+                style={[
+                  styles.passengerRow,
+                  idx > 0 && {
+                    borderTopWidth: 1,
+                    borderTopColor: Colors.borderLight,
+                    paddingTop: Spacing.sm,
+                    marginTop: Spacing.xs,
+                  },
+                ]}
+              >
+                <Avatar name={p.user_name} size={36} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.passengerName}>{p.user_name || '—'}</Text>
+                  <Text style={styles.passengerMeta}>
+                    {p.pickup_address || '—'}
+                    {p.distance_km ? ` · ${p.distance_km} km` : ''}
+                  </Text>
+                </View>
+                {p.is_admin ? (
+                  <Badge
+                    label={t('trips.tripAdmin')}
+                    tone="primary"
+                    size="sm"
+                  />
+                ) : price ? (
+                  <Text style={styles.priceText}>{formatCurrency(price)}</Text>
+                ) : (
+                  <Badge label="—" tone="neutral" size="sm" />
+                )}
+              </View>
+            );
+          })
+        )}
+      </Card>
+    </View>
+  );
+
+  const Actions = (
+    <View>
+      {isAdmin ? (
+        <View style={styles.adminActions}>
+          <Button
+            title={t('pricing.title')}
+            variant="outline"
+            onPress={() => nav.navigate('Pricing', { tripId: trip.id })}
+            leftIcon={
+              <Ionicons name="cash-outline" size={18} color={Colors.primary} />
+            }
+          />
+          <View style={{ height: Spacing.sm }} />
+          <Button
+            title={t('offers.bidsReceived')}
+            onPress={() => nav.navigate('Offers', { tripId: trip.id })}
+            leftIcon={
+              <Ionicons name="hammer-outline" size={18} color={Colors.onPrimary} />
+            }
+          />
+          <View style={{ height: Spacing.sm }} />
+          <Button
+            title={t('attendance.title')}
+            variant="ghost"
+            onPress={() => nav.navigate('Attendance', { tripId: trip.id })}
+          />
+        </View>
+      ) : null}
+
+      {!isAdmin && isMember ? (
+        <View style={styles.adminActions}>
+          <Button
+            title={t('attendance.title')}
+            onPress={() => nav.navigate('Attendance', { tripId: trip.id })}
+            leftIcon={
+              <Ionicons name="calendar-outline" size={18} color={Colors.onPrimary} />
+            }
+          />
+          <View style={{ height: Spacing.sm }} />
+          <Button
+            title={t('trips.leaveTrip')}
+            variant="outline"
+            onPress={handleLeave}
+            loading={busy}
+          />
+        </View>
+      ) : null}
+
+      {!isMember ? (
+        <View style={styles.adminActions}>
+          <Button
+            title={seatsLeft > 0 ? t('trips.joinTrip') : t('trips.tripFull')}
+            onPress={handleJoin}
+            disabled={seatsLeft === 0}
+            loading={busy}
+            leftIcon={
+              <Ionicons
+                name="add-circle-outline"
+                size={18}
+                color={Colors.onPrimary}
+              />
+            }
+          />
+        </View>
+      ) : null}
+
+      <View style={{ marginTop: Spacing.md }}>
+        <Button
+          title={t('trips.shareTrip')}
+          variant="outline"
+          onPress={handleShare}
+          leftIcon={
+            <Ionicons
+              name="share-social-outline"
+              size={20}
+              color={Colors.primary}
+            />
+          }
+        />
+      </View>
+    </View>
+  );
+
   return (
     <Screen background={Colors.surface}>
       <Header
-        title={`${formatCityName(trip.start_address)} → ${formatCityName(trip.end_address)}`}
+        title={`${formatCityName(trip.start_address)} → ${formatCityName(
+          trip.end_address
+        )}`}
         onBack={() => nav.goBack()}
-        right={
-          <Badge
-            label={t(`trips.status.${trip.status}`)}
-            tone={
-              trip.status === TripStatus.Assigned ? 'success'
-                : trip.status === TripStatus.Bidding ? 'warning'
-                  : 'primary'
-            }
-          />
-        }
+        right={StatusBadge}
       />
       <ScrollView
-        contentContainerStyle={styles.scroll}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={load} />}
+        contentContainerStyle={[
+          styles.scroll,
+          layout.isWide && {
+            maxWidth: layout.contentMaxWidth,
+            alignSelf: 'center',
+            width: '100%',
+          },
+        ]}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => load('refresh')}
+          />
+        }
       >
+        {actionMsg ? (
+          <Banner
+            tone={actionMsg.tone === 'success' ? 'success' : 'error'}
+            title={
+              actionMsg.tone === 'success'
+                ? t('common.success')
+                : t('errors.actionFailed')
+            }
+            description={actionMsg.text}
+            onDismiss={() => setActionMsg(null)}
+            style={{ marginBottom: Spacing.md }}
+          />
+        ) : null}
+
         <View style={styles.mapWrap}>
           <TripRouteMapView points={routeMapPoints} height={220} />
           <View style={styles.routeBadge}>
@@ -182,185 +557,39 @@ export const TripDetailsScreen: React.FC = () => {
               <Text style={styles.routeBadgeLabel}>
                 {t('trips.routeOverview')}
               </Text>
-              <Text
-                style={styles.routeBadgeTitle}
-                numberOfLines={1}
-              >
-                {formatCityName(trip.start_address)} → {formatCityName(trip.end_address)}
+              <Text style={styles.routeBadgeTitle} numberOfLines={1}>
+                {formatCityName(trip.start_address)} →{' '}
+                {formatCityName(trip.end_address)}
               </Text>
             </View>
           </View>
         </View>
 
-        <Card style={styles.heroCard}>
-          <View style={styles.heroTop}>
-            <Avatar name={trip.admin_name} size={44} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.heroAdminLabel}>{t('trips.tripAdmin')}</Text>
-              <Text style={styles.heroAdminName}>
-                {trip.admin_name || '—'}
-              </Text>
+        {layout.isWide ? (
+          <View style={styles.twoCol}>
+            <View style={styles.twoColMain}>
+              {HeroCard}
+              {TimelineCard}
+              {PassengersCard}
             </View>
-            {isAdmin && (
-              <Badge label={t('trips.youAreAdmin')} tone="primary" icon="shield-checkmark" />
-            )}
-          </View>
-
-          <View style={styles.metaRow}>
-            <View style={styles.metaItem}>
-              <Ionicons name="time-outline" size={14} color={Colors.textLight} />
-              <Text style={styles.metaText}>
-                {formatTime(trip.departure_time)}
-              </Text>
+            <View style={styles.twoColAside}>
+              {ScheduleCard}
+              {Actions}
             </View>
-            <View style={styles.metaItem}>
-              <Ionicons name="people-outline" size={14} color={Colors.textLight} />
-              <Text style={styles.metaText}>
-                {passengers.length}/{trip.total_seats} {t('common.seats')}
-              </Text>
-            </View>
-            {trip.distance_km ? (
-              <View style={styles.metaItem}>
-                <Ionicons name="map-outline" size={14} color={Colors.textLight} />
-                <Text style={styles.metaText}>{trip.distance_km} km</Text>
-              </View>
-            ) : null}
           </View>
-        </Card>
-
-        <SectionTitle title={t('trips.tripTimeline')} />
-        <Card>
-          <RouteTimeline stops={timelineStops} />
-        </Card>
-
-        <SectionTitle title={t('trips.scheduleDays')} />
-        <Card>
-          <View style={styles.daysRow}>
-            {DAYS_OF_WEEK.map((d) => {
-              const active = schedDays.includes(d.value);
-              return (
-                <View
-                  key={d.value}
-                  style={[
-                    styles.dayChip,
-                    active && {
-                      backgroundColor: Colors.primary,
-                      borderColor: Colors.primary,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.dayChipText,
-                      active && { color: Colors.onPrimary },
-                    ]}
-                  >
-                    {t(`days.${d.key}`)}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-          <Text style={styles.dateHint}>
-            {trip.active_from} → {trip.active_to || '—'}
-          </Text>
-        </Card>
-
-        <SectionTitle title={t('trips.passengers')} />
-        <Card>
-          {passengers.length === 0 ? (
-            <Text style={styles.empty}>{t('trips.noPassengers')}</Text>
-          ) : (
-            passengers.map((p) => {
-              const price = pricing.find((x) => x.user_id === p.user_id)?.price;
-              return (
-                <View key={p.id} style={styles.passengerRow}>
-                  <Avatar name={p.user_name} size={36} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.passengerName}>{p.user_name}</Text>
-                    <Text style={styles.passengerMeta}>
-                      {p.pickup_address || '—'}
-                      {p.distance_km ? ` · ${p.distance_km} km` : ''}
-                    </Text>
-                  </View>
-                  {p.is_admin ? (
-                    <Badge label={t('trips.tripAdmin')} tone="primary" size="sm" />
-                  ) : price ? (
-                    <Text style={styles.priceText}>{formatCurrency(price)}</Text>
-                  ) : null}
-                </View>
-              );
-            })
-          )}
-        </Card>
-
-        {/* Admin actions */}
-        {isAdmin && (
-          <View style={styles.adminActions}>
-            <Button
-              title={t('pricing.title')}
-              variant="outline"
-              onPress={() => nav.navigate('Pricing', { tripId: trip.id })}
-              leftIcon={<Ionicons name="cash-outline" size={18} color={Colors.primary} />}
-            />
-            <View style={{ height: Spacing.sm }} />
-            <Button
-              title={t('offers.bidsReceived')}
-              onPress={() => nav.navigate('Offers', { tripId: trip.id })}
-              leftIcon={<Ionicons name="hammer-outline" size={18} color={Colors.onPrimary} />}
-            />
-          </View>
+        ) : (
+          <>
+            {HeroCard}
+            {TimelineCard}
+            {ScheduleCard}
+            {PassengersCard}
+            {Actions}
+          </>
         )}
-
-        {/* Member actions */}
-        {!isAdmin && isMember && (
-          <View style={styles.adminActions}>
-            <Button
-              title={t('attendance.title')}
-              onPress={() => nav.navigate('Attendance', { tripId: trip.id })}
-              leftIcon={
-                <Ionicons name="calendar-outline" size={18} color={Colors.onPrimary} />
-              }
-            />
-            <View style={{ height: Spacing.sm }} />
-            <Button
-              title={t('trips.leaveTrip')}
-              variant="outline"
-              onPress={handleLeave}
-            />
-          </View>
-        )}
-
-        {/* Non-member actions */}
-        {!isMember && (
-          <View style={styles.adminActions}>
-            <Button
-              title={seatsLeft > 0 ? t('trips.joinTrip') : t('trips.tripFull')}
-              onPress={handleJoin}
-              disabled={seatsLeft === 0}
-              leftIcon={
-                <Ionicons name="add-circle-outline" size={18} color={Colors.onPrimary} />
-              }
-            />
-          </View>
-        )}
-
-        <View style={{ marginTop: Spacing.md }}>
-          <Button
-            title={t('trips.shareTrip')}
-            variant="outline"
-            onPress={handleShare}
-            leftIcon={<Ionicons name="share-social-outline" size={20} color={Colors.primary} />}
-          />
-        </View>
       </ScrollView>
     </Screen>
   );
 };
-
-const SectionTitle: React.FC<{ title: string }> = ({ title }) => (
-  <Text style={styles.sectionTitle}>{title}</Text>
-);
 
 const shortAddress = (address?: string): string => {
   if (!address) return '—';
@@ -404,7 +633,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bold,
     marginTop: 2,
   },
-  heroCard: { gap: Spacing.sm, ...Shadows.card },
+  heroCard: { gap: Spacing.md, ...Shadows.card },
   heroTop: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -423,24 +652,10 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bold,
     marginTop: 2,
   },
-  metaRow: {
+  statsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Spacing.md,
-    marginTop: Spacing.xs,
-  },
-  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  metaText: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    fontFamily: FontFamily.medium,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    color: Colors.text,
-    fontFamily: FontFamily.bold,
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.sm,
+    gap: Spacing.xs,
   },
   daysRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   dayChip: {
@@ -467,12 +682,13 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     fontFamily: FontFamily.regular,
     paddingVertical: Spacing.sm,
+    textAlign: 'center',
   },
   passengerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   passengerName: {
     fontSize: 14,
@@ -489,5 +705,13 @@ const styles = StyleSheet.create({
     color: Colors.secondary,
     fontFamily: FontFamily.bold,
   },
-  adminActions: { marginTop: Spacing.lg },
+  adminActions: { marginTop: Spacing.md },
+  twoCol: {
+    flexDirection: 'row',
+    gap: Spacing.lg,
+    alignItems: 'flex-start',
+  },
+  twoColMain: { flex: 2 },
+  twoColAside: { flex: 1 },
+  skelRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
 });

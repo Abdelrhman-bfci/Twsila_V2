@@ -7,7 +7,6 @@ import {
   Platform,
   ScrollView,
   Pressable,
-  Alert,
   Image,
   Animated,
   Easing,
@@ -17,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { Button, Input, Screen } from '@shared/components';
+import { Banner, Button, Input, Screen } from '@shared/components';
 import {
   Colors,
   Spacing,
@@ -25,6 +24,7 @@ import {
   BorderRadius,
   Shadows,
 } from '@core/theme';
+import { useResponsiveLayout } from '@shared/hooks';
 import { isDevMode, DEV_ACCOUNTS } from '@core/config/devMode';
 import { isValidPhone, isStrongPassword } from '@core/utils/validators';
 
@@ -37,52 +37,43 @@ export const LoginScreen: React.FC = () => {
   const { t } = useTranslation();
   const nav = useNavigation<Nav>();
   const { signIn, loading } = useAuth();
+  const layout = useResponsiveLayout();
 
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ phone?: string; password?: string }>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Animation values
   const brandOpacity = useRef(new Animated.Value(0)).current;
   const brandTranslateY = useRef(new Animated.Value(-20)).current;
   const cardOpacity = useRef(new Animated.Value(0)).current;
   const cardTranslateY = useRef(new Animated.Value(40)).current;
 
   useEffect(() => {
-    // Brand animation
     Animated.parallel([
-      Animated.timing(brandOpacity, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
+      Animated.timing(brandOpacity, { toValue: 1, duration: 700, useNativeDriver: true }),
       Animated.timing(brandTranslateY, {
         toValue: 0,
-        duration: 800,
+        duration: 700,
         easing: Easing.out(Easing.back()),
         useNativeDriver: true,
       }),
     ]).start();
-
-    // Card animation with delay
     setTimeout(() => {
       Animated.parallel([
-        Animated.timing(cardOpacity, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
+        Animated.timing(cardOpacity, { toValue: 1, duration: 700, useNativeDriver: true }),
         Animated.timing(cardTranslateY, {
           toValue: 0,
-          duration: 1000,
+          duration: 700,
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         }),
       ]).start();
-    }, 300);
-  }, []);
+    }, 220);
+  }, [brandOpacity, brandTranslateY, cardOpacity, cardTranslateY]);
 
   const handleSignIn = async () => {
+    setSubmitError(null);
     const next: typeof errors = {};
     if (!phone.trim()) next.phone = t('auth.phoneRequired');
     else if (!isValidPhone(phone)) next.phone = t('auth.phoneInvalid');
@@ -94,21 +85,22 @@ export const LoginScreen: React.FC = () => {
     try {
       await signIn(phone.trim(), password);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : t('auth.loginFailed');
-      Alert.alert(t('common.error'), msg);
+      setSubmitError(err instanceof Error ? err.message : t('auth.loginFailed'));
     }
   };
 
   const quickLogin = async (acc: (typeof DEV_ACCOUNTS)[number]) => {
+    setSubmitError(null);
     setPhone(acc.phone);
     setPassword(acc.password);
     try {
       await signIn(acc.phone, acc.password);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : t('auth.loginFailed');
-      Alert.alert(t('common.error'), msg);
+      setSubmitError(err instanceof Error ? err.message : t('auth.loginFailed'));
     }
   };
+
+  const cardMaxWidth = layout.isWide ? 460 : layout.isMedium ? 460 : '100%';
 
   return (
     <Screen background={Colors.primary} edges={['top']}>
@@ -117,14 +109,23 @@ export const LoginScreen: React.FC = () => {
         style={{ flex: 1 }}
       >
         <ScrollView
-          contentContainerStyle={styles.scroll}
+          contentContainerStyle={[
+            styles.scroll,
+            layout.isWide && { flexDirection: 'row', alignItems: 'stretch' },
+          ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Animated.View style={[styles.brandTop, {
-            opacity: brandOpacity,
-            transform: [{ translateY: brandTranslateY }],
-          }]}>
+          <Animated.View
+            style={[
+              styles.brandTop,
+              layout.isWide && styles.brandTopWide,
+              {
+                opacity: brandOpacity,
+                transform: [{ translateY: brandTranslateY }],
+              },
+            ]}
+          >
             <View style={styles.logoCircle}>
               <Image
                 source={require('../../../../../assets/logo.png')}
@@ -134,14 +135,44 @@ export const LoginScreen: React.FC = () => {
             </View>
             <Text style={styles.appName}>{t('common.appName').toUpperCase()}</Text>
             <Text style={styles.tagline}>{t('common.tagline')}</Text>
+
+            {layout.isWide ? (
+              <View style={styles.wideTrust}>
+                <View style={styles.wideTrustItem}>
+                  <Ionicons name="shield-checkmark" size={14} color="#A9A7FF" />
+                  <Text style={styles.wideTrustText}>{t('auth.securedBy')}</Text>
+                </View>
+                <View style={styles.wideTrustItem}>
+                  <Ionicons name="ribbon" size={14} color="#A9A7FF" />
+                  <Text style={styles.wideTrustText}>{t('auth.studentVerified')}</Text>
+                </View>
+              </View>
+            ) : null}
           </Animated.View>
 
-          <Animated.View style={[styles.cardWrap, {
-            opacity: cardOpacity,
-            transform: [{ translateY: cardTranslateY }],
-          }]}>
-            <View style={styles.card}>
+          <Animated.View
+            style={[
+              styles.cardWrap,
+              layout.isWide && styles.cardWrapWide,
+              {
+                opacity: cardOpacity,
+                transform: [{ translateY: cardTranslateY }],
+              },
+            ]}
+          >
+            <View style={[styles.card, { maxWidth: cardMaxWidth, alignSelf: 'center' }]}>
+              <Text style={styles.cardEyebrow}>{t('auth.signIn').toUpperCase()}</Text>
               <Text style={styles.cardTitle}>{t('auth.welcomeBack')}</Text>
+              <Text style={styles.cardSubtitle}>{t('auth.welcomeSubtitle')}</Text>
+
+              {submitError ? (
+                <Banner
+                  tone="error"
+                  title={t('auth.loginFailed')}
+                  description={submitError}
+                  style={{ marginBottom: Spacing.md }}
+                />
+              ) : null}
 
               <Input
                 label={t('auth.phone')}
@@ -166,7 +197,7 @@ export const LoginScreen: React.FC = () => {
 
               <Pressable
                 style={styles.forgotBtn}
-                onPress={() => Alert.alert(t('auth.forgotPassword'), t('common.comingSoon'))}
+                onPress={() => setSubmitError(t('common.comingSoon'))}
               >
                 <Text style={styles.forgot}>{t('auth.forgotPassword')}</Text>
               </Pressable>
@@ -189,19 +220,11 @@ export const LoginScreen: React.FC = () => {
 
               <View style={styles.partnersRow}>
                 <Pressable style={styles.partnerBtn}>
-                  <Ionicons
-                    name="logo-google"
-                    size={18}
-                    color={Colors.text}
-                  />
+                  <Ionicons name="logo-google" size={18} color={Colors.text} />
                   <Text style={styles.partnerText}>{t('auth.google')}</Text>
                 </Pressable>
                 <Pressable style={styles.partnerBtn}>
-                  <Ionicons
-                    name="git-network-outline"
-                    size={18}
-                    color={Colors.text}
-                  />
+                  <Ionicons name="git-network-outline" size={18} color={Colors.text} />
                   <Text style={styles.partnerText}>{t('auth.uniHub')}</Text>
                 </Pressable>
               </View>
@@ -213,39 +236,31 @@ export const LoginScreen: React.FC = () => {
                 </Pressable>
               </View>
 
-              <View style={styles.trustRow}>
-                <View style={styles.trustItem}>
-                  <Ionicons
-                    name="shield-checkmark-outline"
-                    size={13}
-                    color={Colors.textLight}
-                  />
-                  <Text style={styles.trustText}>{t('auth.securedBy')}</Text>
+              {!layout.isWide ? (
+                <View style={styles.trustRow}>
+                  <View style={styles.trustItem}>
+                    <Ionicons
+                      name="shield-checkmark-outline"
+                      size={13}
+                      color={Colors.textLight}
+                    />
+                    <Text style={styles.trustText}>{t('auth.securedBy')}</Text>
+                  </View>
+                  <View style={styles.trustItem}>
+                    <Ionicons name="ribbon-outline" size={13} color={Colors.textLight} />
+                    <Text style={styles.trustText}>{t('auth.studentVerified')}</Text>
+                  </View>
                 </View>
-                <View style={styles.trustItem}>
-                  <Ionicons
-                    name="ribbon-outline"
-                    size={13}
-                    color={Colors.textLight}
-                  />
-                  <Text style={styles.trustText}>{t('auth.studentVerified')}</Text>
-                </View>
-              </View>
+              ) : null}
             </View>
 
             {isDevMode() && (
-              <View style={styles.devBanner}>
+              <View style={[styles.devBanner, { maxWidth: cardMaxWidth, alignSelf: 'center' }]}>
                 <View style={styles.devTopRow}>
-                  <Ionicons
-                    name="construct-outline"
-                    size={14}
-                    color={Colors.primary}
-                  />
+                  <Ionicons name="construct-outline" size={14} color={Colors.primary} />
                   <Text style={styles.devTitle}>{t('auth.devMode')}</Text>
                 </View>
-                <Text style={styles.devSubtitle}>
-                  {t('auth.devPickAccount')}
-                </Text>
+                <Text style={styles.devSubtitle}>{t('auth.devPickAccount')}</Text>
 
                 <View style={styles.devGrid}>
                   {DEV_ACCOUNTS.map((a) => (
@@ -269,9 +284,7 @@ export const LoginScreen: React.FC = () => {
                           name={a.role === 'captain' ? 'car-sport' : 'person'}
                           size={14}
                           color={
-                            a.role === 'captain'
-                              ? Colors.secondary
-                              : Colors.primary
+                            a.role === 'captain' ? Colors.secondary : Colors.primary
                           }
                         />
                       </View>
@@ -279,9 +292,7 @@ export const LoginScreen: React.FC = () => {
                         {a.name}
                       </Text>
                       <Text style={styles.devRole}>
-                        {a.role === 'captain'
-                          ? t('auth.captain')
-                          : t('auth.passenger')}
+                        {a.role === 'captain' ? t('auth.captain') : t('auth.passenger')}
                       </Text>
                     </Pressable>
                   ))}
@@ -303,6 +314,12 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl,
     paddingHorizontal: Spacing.lg,
     backgroundColor: Colors.primary,
+  },
+  brandTopWide: {
+    flex: 1,
+    paddingTop: Spacing.xxl,
+    paddingBottom: Spacing.xxl,
+    justifyContent: 'center',
   },
   logoCircle: {
     width: 124,
@@ -328,6 +345,19 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.85)',
     fontFamily: FontFamily.medium,
     textAlign: 'center',
+    maxWidth: 320,
+  },
+  wideTrust: {
+    flexDirection: 'row',
+    gap: Spacing.lg,
+    marginTop: Spacing.xl,
+  },
+  wideTrustItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  wideTrustText: {
+    fontSize: 12,
+    color: '#A9A7FF',
+    fontFamily: FontFamily.semiBold,
+    letterSpacing: 0.5,
   },
   cardWrap: {
     backgroundColor: Colors.surface,
@@ -339,17 +369,41 @@ const styles = StyleSheet.create({
     marginTop: -16,
     flex: 1,
   },
+  cardWrapWide: {
+    flex: 1,
+    marginTop: 0,
+    borderRadius: 0,
+    paddingTop: Spacing.xxl,
+    paddingBottom: Spacing.xxl,
+    justifyContent: 'center',
+  },
   card: {
     backgroundColor: Colors.surfaceLowest,
     borderRadius: BorderRadius.xl,
     padding: Spacing.lg,
+    width: '100%',
     ...Shadows.card,
   },
+  cardEyebrow: {
+    fontSize: 11,
+    fontFamily: FontFamily.bold,
+    color: Colors.primary,
+    letterSpacing: 1.5,
+    marginBottom: 4,
+  },
   cardTitle: {
-    fontSize: 22,
+    fontSize: 24,
     fontFamily: FontFamily.bold,
     color: Colors.text,
+    marginBottom: 4,
+    letterSpacing: -0.3,
+  },
+  cardSubtitle: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    fontFamily: FontFamily.regular,
     marginBottom: Spacing.md,
+    lineHeight: 18,
   },
   forgotBtn: { alignSelf: 'flex-end', marginBottom: 4, marginTop: 2 },
   forgot: {
@@ -432,6 +486,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceLowest,
     borderWidth: 1,
     borderColor: Colors.borderLight,
+    width: '100%',
     ...Shadows.subtle,
   },
   devTopRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },

@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TextInput,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -22,10 +21,16 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Avatar,
   Badge,
+  Banner,
   Button,
   Card,
+  EmptyState,
+  ErrorState,
   Header,
   Screen,
+  SectionHeader,
+  Skeleton,
+  StatTile,
 } from '@shared/components';
 import {
   Colors,
@@ -33,7 +38,8 @@ import {
   FontFamily,
   BorderRadius,
 } from '@core/theme';
-import { formatCurrency } from '@core/utils/format';
+import { useResponsiveLayout } from '@shared/hooks';
+import { formatCurrency, formatCityName } from '@core/utils/format';
 
 import { useAuth } from '@features/auth/presentation/context/AuthContext';
 import { tripsRepository } from '../../data/tripsRepository';
@@ -43,32 +49,61 @@ import { PassengerExploreStackParamList } from '@navigation/types';
 type Nav = NativeStackNavigationProp<PassengerExploreStackParamList, 'Pricing'>;
 type Rt = RouteProp<PassengerExploreStackParamList, 'Pricing'>;
 
+type Status = 'loading' | 'success' | 'empty' | 'error' | 'notFound';
+
 export const PricingScreen: React.FC = () => {
   const { t } = useTranslation();
   const nav = useNavigation<Nav>();
   const route = useRoute<Rt>();
   const { user } = useAuth();
+  const layout = useResponsiveLayout();
   const { tripId } = route.params;
 
   const [trip, setTrip] = useState<Trip | null>(null);
+  const [status, setStatus] = useState<Status>('loading');
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [prices, setPrices] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [actionMsg, setActionMsg] = useState<{
+    tone: 'success' | 'error';
+    text: string;
+  } | null>(null);
 
   const load = useCallback(async () => {
-    const t = await tripsRepository.getTrip(tripId);
-    if (!t) return;
-    setTrip(t);
-    const initial: Record<string, string> = {};
-    (t.passengers ?? [])
-      .filter((p) => !p.is_admin)
-      .forEach((p) => {
-        const existing = (t.pricing ?? []).find((x) => x.user_id === p.user_id);
+    setStatus('loading');
+    try {
+      const data = await tripsRepository.getTrip(tripId);
+      if (!data) {
+        setStatus('notFound');
+        return;
+      }
+      setTrip(data);
+
+      const pax = (data.passengers ?? []).filter((p) => !p.is_admin);
+      const initial: Record<string, string> = {};
+      pax.forEach((p) => {
+        const existing = (data.pricing ?? []).find((x) => x.user_id === p.user_id);
         initial[p.user_id] = existing?.price ? String(existing.price) : '';
       });
-    setPrices(initial);
-  }, [tripId]);
+      setPrices(initial);
+      setStatus(pax.length === 0 ? 'empty' : 'success');
+      setErrorMsg(null);
+    } catch (e) {
+      setErrorMsg(e instanceof Error ? e.message : t('errors.network'));
+      setStatus('error');
+    }
+  }, [tripId, t]);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
+
+  const passengers = useMemo(
+    () => (trip?.passengers ?? []).filter((p) => !p.is_admin),
+    [trip]
+  );
 
   const totalRevenue = useMemo(
     () =>
@@ -76,9 +111,15 @@ export const PricingScreen: React.FC = () => {
     [prices]
   );
 
+  const filledPrices = useMemo(
+    () => Object.values(prices).filter((v) => parseFloat(v) > 0).length,
+    [prices]
+  );
+
   const handleSave = async () => {
     if (!user || !trip) return;
     setSubmitting(true);
+    setActionMsg(null);
     try {
       for (const [uid, raw] of Object.entries(prices)) {
         const value = parseFloat(raw);
@@ -87,104 +128,228 @@ export const PricingScreen: React.FC = () => {
         }
       }
       await load();
-      Alert.alert(t('common.success'), t('pricing.saveAll'));
+      setActionMsg({ tone: 'success', text: t('pricing.savedSuccess') });
     } catch (err) {
-      Alert.alert(t('common.error'), err instanceof Error ? err.message : '');
+      setActionMsg({
+        tone: 'error',
+        text: err instanceof Error ? err.message : t('errors.actionFailed'),
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (!trip) {
+  if (status === 'loading') {
     return (
-      <Screen>
-        <Header title={t('common.loading')} onBack={() => nav.goBack()} />
+      <Screen background={Colors.surface}>
+        <Header title={t('pricing.title')} onBack={() => nav.goBack()} />
+        <ScrollView contentContainerStyle={styles.scroll}>
+          <Card>
+            <Skeleton width="60%" height={14} />
+            <View style={{ height: 8 }} />
+            <Skeleton width="40%" height={24} />
+          </Card>
+          <View style={{ height: Spacing.md }} />
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i} style={{ marginBottom: Spacing.sm }}>
+              <View style={styles.skelRow}>
+                <Skeleton width={42} height={42} radius={BorderRadius.pill} />
+                <View style={{ flex: 1, gap: 6 }}>
+                  <Skeleton width="50%" height={14} />
+                  <Skeleton width="80%" height={10} />
+                </View>
+              </View>
+              <View style={{ height: Spacing.sm }} />
+              <Skeleton height={42} radius={BorderRadius.md} />
+            </Card>
+          ))}
+        </ScrollView>
       </Screen>
     );
   }
 
-  const passengers = (trip.passengers ?? []).filter((p) => !p.is_admin);
+  if (status === 'notFound') {
+    return (
+      <Screen background={Colors.surface}>
+        <Header title={t('pricing.title')} onBack={() => nav.goBack()} />
+        <ErrorState
+          icon="map-outline"
+          title={t('errors.tripNotFound')}
+          description={t('errors.tripNotFoundSubtitle')}
+        />
+      </Screen>
+    );
+  }
+
+  if (status === 'error' || !trip) {
+    return (
+      <Screen background={Colors.surface}>
+        <Header title={t('pricing.title')} onBack={() => nav.goBack()} />
+        <ErrorState
+          title={t('errors.loadFailed')}
+          description={errorMsg ?? t('errors.loadFailedSubtitle')}
+          retryLabel={t('common.retry')}
+          onRetry={load}
+        />
+      </Screen>
+    );
+  }
 
   return (
     <Screen background={Colors.surface}>
-      <Header title={t('pricing.title')} onBack={() => nav.goBack()} />
+      <Header
+        title={t('pricing.title')}
+        subtitle={`${formatCityName(trip.start_address)} → ${formatCityName(
+          trip.end_address
+        )}`}
+        onBack={() => nav.goBack()}
+      />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.scroll}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.scroll,
+            layout.isWide && {
+              maxWidth: layout.contentMaxWidth,
+              alignSelf: 'center',
+              width: '100%',
+            },
+          ]}
+        >
           <Text style={styles.subtitle}>{t('pricing.subtitle')}</Text>
 
-          <Card style={styles.summaryCard} variant="tinted">
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>{t('pricing.perRoundTrip')}</Text>
-              <Text style={styles.summaryValue}>
-                {formatCurrency(totalRevenue)}
-              </Text>
-            </View>
-            <Text style={styles.summaryHint}>
-              {passengers.length} × {t('common.passenger' as never) || 'passengers'}
-            </Text>
-          </Card>
+          {actionMsg ? (
+            <Banner
+              tone={actionMsg.tone === 'success' ? 'success' : 'error'}
+              title={
+                actionMsg.tone === 'success'
+                  ? t('common.success')
+                  : t('errors.actionFailed')
+              }
+              description={actionMsg.text}
+              onDismiss={() => setActionMsg(null)}
+              style={{ marginBottom: Spacing.md }}
+            />
+          ) : null}
 
-          {passengers.map((p) => {
-            const v = prices[p.user_id] || '';
-            return (
-              <Card key={p.id} style={styles.passengerCard}>
-                <View style={styles.row}>
-                  <Avatar name={p.user_name} size={42} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.pName}>{p.user_name}</Text>
-                    <Text style={styles.pMeta}>
-                      <Ionicons name="location-outline" size={12} />{' '}
-                      {p.pickup_address || '—'}
-                    </Text>
-                    {p.distance_km ? (
-                      <Badge
-                        label={t('pricing.distanceAway', { km: p.distance_km })}
-                        tone="primary"
-                        size="sm"
-                        style={{ marginTop: 4 }}
-                      />
-                    ) : null}
-                  </View>
-                </View>
+          <View style={styles.statsRow}>
+            <StatTile
+              label={t('pricing.perRoundTrip')}
+              value={formatCurrency(totalRevenue)}
+              caption={t('pricing.passengerCount', { count: passengers.length })}
+              icon="cash-outline"
+              tone="primary"
+            />
+            <StatTile
+              label={t('pricing.passengerCount', { count: passengers.length })}
+              value={`${filledPrices}/${passengers.length}`}
+              icon="people-outline"
+              tone={filledPrices === passengers.length ? 'success' : 'warning'}
+            />
+          </View>
 
-                <View style={styles.amountRow}>
-                  <Text style={styles.amountLabel}>{t('pricing.amount')}</Text>
-                  <View style={styles.amountInputBox}>
-                    <TextInput
-                      value={v}
-                      onChangeText={(text) =>
-                        setPrices((prev) => ({ ...prev, [p.user_id]: text }))
-                      }
-                      keyboardType="decimal-pad"
-                      placeholder="0"
-                      placeholderTextColor={Colors.textLight}
-                      style={styles.amountInput}
-                    />
-                    <Text style={styles.amountCurrency}>
-                      {t('common.currency')}
-                    </Text>
-                  </View>
-                </View>
-              </Card>
-            );
-          })}
+          {status === 'empty' ? (
+            <Card style={{ marginTop: Spacing.md }}>
+              <EmptyState
+                icon="people-outline"
+                title={t('pricing.noPassengersTitle')}
+                subtitle={t('pricing.noPassengersSubtitle')}
+              />
+            </Card>
+          ) : (
+            <>
+              <SectionHeader
+                title={t('trips.passengers')}
+                caption={`${passengers.length} ${t('common.passengers').toLowerCase()}`}
+                leadingIcon="cash-outline"
+                style={{ marginTop: Spacing.lg }}
+              />
 
-          {!passengers.length && (
-            <Text style={styles.empty}>{t('trips.noPassengers')}</Text>
+              <View style={layout.isWide ? styles.gridWide : undefined}>
+                {passengers.map((p) => {
+                  const v = prices[p.user_id] || '';
+                  const has = parseFloat(v) > 0;
+                  return (
+                    <Card
+                      key={p.id}
+                      style={[
+                        styles.passengerCard,
+                        layout.isWide && { width: '49%' },
+                      ]}
+                      variant="outlined"
+                    >
+                      <View style={styles.row}>
+                        <Avatar name={p.user_name} size={42} />
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.pName}>{p.user_name}</Text>
+                          <Text style={styles.pMeta} numberOfLines={2}>
+                            <Ionicons name="location-outline" size={11} />{' '}
+                            {p.pickup_address || '—'}
+                          </Text>
+                          {p.distance_km ? (
+                            <Badge
+                              label={t('pricing.distanceAway', { km: p.distance_km })}
+                              tone="primary"
+                              size="sm"
+                              style={{ marginTop: 4 }}
+                            />
+                          ) : null}
+                        </View>
+                      </View>
+
+                      <View style={styles.amountRow}>
+                        <Text style={styles.amountLabel}>
+                          {t('pricing.amount')}
+                        </Text>
+                        <View
+                          style={[
+                            styles.amountInputBox,
+                            has && {
+                              borderColor: Colors.secondary,
+                              backgroundColor: Colors.secondarySoft,
+                            },
+                          ]}
+                        >
+                          <TextInput
+                            value={v}
+                            onChangeText={(text) =>
+                              setPrices((prev) => ({
+                                ...prev,
+                                [p.user_id]: text,
+                              }))
+                            }
+                            keyboardType="decimal-pad"
+                            placeholder="0"
+                            placeholderTextColor={Colors.textLight}
+                            style={styles.amountInput}
+                          />
+                          <Text style={styles.amountCurrency}>
+                            {t('common.currency')}
+                          </Text>
+                        </View>
+                      </View>
+                    </Card>
+                  );
+                })}
+              </View>
+
+              <Button
+                title={t('pricing.saveAll')}
+                onPress={handleSave}
+                loading={submitting}
+                style={{ marginTop: Spacing.lg }}
+                leftIcon={
+                  <Ionicons
+                    name="cloud-upload-outline"
+                    size={18}
+                    color={Colors.onPrimary}
+                  />
+                }
+              />
+            </>
           )}
-
-          <Button
-            title={t('pricing.saveAll')}
-            onPress={handleSave}
-            loading={submitting}
-            style={{ marginTop: Spacing.lg }}
-            leftIcon={
-              <Ionicons name="cloud-upload-outline" size={18} color={Colors.onPrimary} />
-            }
-          />
         </ScrollView>
       </KeyboardAvoidingView>
     </Screen>
@@ -198,37 +363,27 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     fontFamily: FontFamily.regular,
     marginBottom: Spacing.md,
+    lineHeight: 18,
   },
-  summaryCard: { marginBottom: Spacing.md },
-  summaryRow: {
+  statsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: Spacing.sm,
+    flexWrap: 'wrap',
   },
-  summaryLabel: {
-    fontSize: 13,
-    fontFamily: FontFamily.semiBold,
-    color: Colors.primary,
-  },
-  summaryValue: {
-    fontSize: 22,
-    fontFamily: FontFamily.bold,
-    color: Colors.primary,
-  },
-  summaryHint: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    fontFamily: FontFamily.regular,
-    marginTop: 4,
+  gridWide: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
   },
   passengerCard: { marginBottom: Spacing.sm, gap: Spacing.sm },
-  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  row: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm },
   pName: { fontSize: 15, fontFamily: FontFamily.bold, color: Colors.text },
   pMeta: {
     fontSize: 12,
     color: Colors.textLight,
     fontFamily: FontFamily.regular,
     marginTop: 2,
+    lineHeight: 16,
   },
   amountRow: {
     flexDirection: 'row',
@@ -253,6 +408,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     minWidth: 120,
     justifyContent: 'flex-end',
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
   },
   amountInput: {
     fontSize: 16,
@@ -268,10 +425,5 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     marginStart: 4,
   },
-  empty: {
-    textAlign: 'center',
-    color: Colors.textLight,
-    fontFamily: FontFamily.regular,
-    paddingVertical: Spacing.lg,
-  },
+  skelRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
 });
