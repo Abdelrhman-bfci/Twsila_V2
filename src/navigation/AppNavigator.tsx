@@ -27,7 +27,11 @@ export const AppNavigator: React.FC = () => {
   const { user, initialising } = useAuth();
 
   if (initialising) {
-    return null;
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
   }
 
   return (
@@ -43,4 +47,11 @@ export const AppNavigator: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  loading: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

@@ -7,11 +7,6 @@
     "icon": "./assets/AppIcons/playstore.png",
     "userInterfaceStyle": "light",
     "jsEngine": "hermes",
-    "splash": {
-      "image": "./assets/logo.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#1F108E"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],

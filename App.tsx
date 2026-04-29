@@ -25,7 +25,7 @@ export default function App() {
   }, []);
 
   if (!ready) {
-    return <View style={{ flex: 1, backgroundColor: Colors.primary }} />;
+    return null;
   }
 
   return (
@@ -41,26 +41,10 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  splash: {
+  loading: {
     flex: 1,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.background,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  logo: {
-    width: 144,
-    height: 144,
-    borderRadius: 72,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  brand: {
-    marginTop: 16,
-    fontSize: 28,
-    color: '#FFFFFF',
-    fontFamily: FontFamily.black,
-    letterSpacing: 1.5,
-    fontWeight: '900',
   },
 });

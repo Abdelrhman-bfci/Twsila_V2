@@ -55,7 +55,7 @@ export const LoginScreen: React.FC = () => {
       Animated.timing(brandTranslateY, {
         toValue: 0,
         duration: 700,
-        easing: Easing.out(Easing.back()),
+        easing: Easing.out(Easing.back(1.70158)),
         useNativeDriver: true,
       }),
     ]).start();
