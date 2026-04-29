@@ -33,6 +33,7 @@ import {
 } from '@core/theme';
 import { OfferStatus } from '@core/constants';
 import { formatCurrency } from '@core/utils/format';
+import { shareTrip } from '@core/utils/sharing';
 
 import { tripsRepository } from '@features/trips/data/tripsRepository';
 import { CaptainOffer, Trip } from '@features/trips/domain/models/Trip';
@@ -136,11 +137,20 @@ export const OffersScreen: React.FC = () => {
         ) : null}
 
         {pending.length === 0 && !accepted ? (
-          <EmptyState
-            icon="megaphone-outline"
-            title={t('offers.bidsReceived')}
-            subtitle={t('offers.noOffersYet')}
-          />
+          <View style={{ flex: 1, justifyContent: 'center' }}>
+            <EmptyState
+              icon="megaphone-outline"
+              title={t('offers.bidsReceived')}
+              subtitle={t('offers.noOffersYet')}
+            />
+            <View style={{ paddingHorizontal: Spacing.xl, marginTop: -Spacing.lg }}>
+              <Button
+                title={t('trips.shareTrip')}
+                onPress={() => shareTrip(trip, t)}
+                leftIcon={<Ionicons name="share-social-outline" size={20} color={Colors.onPrimary} />}
+              />
+            </View>
+          </View>
         ) : null}
 
         {pending.map((o) => (

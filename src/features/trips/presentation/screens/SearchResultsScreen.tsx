@@ -28,7 +28,7 @@ import {
   Shadows,
 } from '@core/theme';
 import { DAYS_OF_WEEK } from '@core/constants';
-import { formatTime } from '@core/utils/format';
+import { formatTime, formatCityName } from '@core/utils/format';
 
 import { tripsRepository } from '../../data/tripsRepository';
 import { Trip } from '../../domain/models/Trip';
@@ -94,7 +94,7 @@ export const SearchResultsScreen: React.FC = () => {
                 <View style={styles.cardTop}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.tripTitle} numberOfLines={1}>
-                      {trip.name || `${trip.start_address} → ${trip.end_address}`}
+                      {formatCityName(trip.start_address)} → {formatCityName(trip.end_address)}
                     </Text>
                     <Text style={styles.tripRoute} numberOfLines={1}>
                       {trip.start_address} → {trip.end_address}

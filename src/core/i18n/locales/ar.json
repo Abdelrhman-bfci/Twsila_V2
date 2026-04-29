@@ -158,6 +158,12 @@
     "memberCount": "{{ready}}/{{total}} جاهز",
     "perPassenger": "لكل راكب",
     "tripFull": "الرحلة ممتلئة",
+    "shareTrip": "شارك الرحلة",
+    "chooseShareOption": "اختر وسيلة المشاركة",
+    "copyLink": "نسخ الرابط",
+    "shareToSocial": "مشاركة عبر وسائل التواصل",
+    "linkCopied": "تم نسخ الرابط",
+    "shareMessage": "🚌 *تفاصيل الرحلة* 🚌\n📍 من: {{from}}\n🏁 إلى: {{to}}\n⏰ وقت الانطلاق: {{time}}\n📅 الأيام: {{days}}\n\nالتفاصيل هنا: {{url}}",
     "status": {
       "open": "مفتوحة",
       "pricing": "تسعير",

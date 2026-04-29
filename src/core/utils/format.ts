@@ -38,3 +38,14 @@ export const formatLongDate = (date: Date | string, lang?: string): string => {
     month: 'short',
   });
 };
+
+export const formatCityName = (address: string): string => {
+  if (!address) return '';
+  const parts = address.split(/[,•·–—-]/).map((p) => p.trim()).filter(Boolean);
+  if (parts.length > 1) {
+    // If it's "Street, City, Country" -> parts[1] is city
+    // If it's "City, Country" -> parts[0] is city
+    return parts.length >= 3 ? parts[0] : parts[0];
+  }
+  return address;
+};

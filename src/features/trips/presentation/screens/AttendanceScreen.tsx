@@ -39,6 +39,7 @@ import {
   formatLongDate,
   formatTime,
   toIsoDate,
+  formatCityName,
 } from '@core/utils/format';
 
 import { useAuth } from '@features/auth/presentation/context/AuthContext';
@@ -141,7 +142,7 @@ export const AttendanceScreen: React.FC = () => {
       <ScrollView contentContainerStyle={styles.scroll}>
         <Card>
           <Text style={styles.title}>
-            {trip.name || `${trip.start_address} → ${trip.end_address}`}
+            {formatCityName(trip.start_address)} → {formatCityName(trip.end_address)}
           </Text>
           <Text style={styles.subtitle}>
             {formatTime(trip.departure_time)} · {trip.start_address}

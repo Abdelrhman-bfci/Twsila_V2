@@ -15,4 +15,3 @@ export * from './TripRouteMapView';
 export * from './RouteTimeline';
 export * from './Screen';
 export * from './SectionHeader';
-export * from './AppSplashScreen';

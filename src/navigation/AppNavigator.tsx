@@ -6,7 +6,6 @@ import { Colors } from '@core/theme';
 import { UserRole } from '@core/constants';
 
 import { useAuth } from '@features/auth/presentation/context/AuthContext';
-import { AppSplashScreen } from '@shared/components';
 import { AuthNavigator } from './AuthNavigator';
 import { PassengerNavigator } from './PassengerNavigator';
 import { CaptainNavigator } from './CaptainNavigator';
@@ -28,7 +27,7 @@ export const AppNavigator: React.FC = () => {
   const { user, initialising } = useAuth();
 
   if (initialising) {
-    return <AppSplashScreen />;
+    return null;
   }
 
   return (

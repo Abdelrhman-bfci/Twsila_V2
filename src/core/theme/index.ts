@@ -14,7 +14,7 @@ export const FontFamily = {
 
 export const Typography = StyleSheet.create({
   h1: {
-    fontSize: 32,
+    fontSize: 27,
     fontWeight: '700',
     color: Colors.text,
     lineHeight: 38,
@@ -22,7 +22,7 @@ export const Typography = StyleSheet.create({
     letterSpacing: -0.4,
   },
   h2: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: Colors.text,
     lineHeight: 32,
@@ -30,7 +30,7 @@ export const Typography = StyleSheet.create({
     letterSpacing: -0.2,
   },
   h3: {
-    fontSize: 20,
+    fontSize: 17,
     fontWeight: '600',
     color: Colors.text,
     lineHeight: 28,
@@ -59,21 +59,21 @@ export const Typography = StyleSheet.create({
   },
   labelMd: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     fontFamily: FontFamily.semiBold,
     letterSpacing: 0.2,
   },
   labelSm: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '400',
     color: Colors.textLight,
     fontFamily: FontFamily.medium,
     letterSpacing: 0.2,
   },
   button: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     fontFamily: FontFamily.semiBold,
     letterSpacing: 0.2,
   },

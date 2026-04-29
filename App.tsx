@@ -25,19 +25,7 @@ export default function App() {
   }, []);
 
   if (!ready) {
-    return (
-      <View style={styles.splash}>
-        <View style={styles.logo}>
-          <Image
-            source={require('./assets/logo.png')}
-            resizeMode="contain"
-            style={{ width: 120, height: 120 }}
-          />
-        </View>
-        <Text style={styles.brand}>TWSILA</Text>
-        <ActivityIndicator color="#FFFFFF" style={{ marginTop: 16 }} />
-      </View>
-    );
+    return <View style={{ flex: 1, backgroundColor: Colors.primary }} />;
   }
 
   return (

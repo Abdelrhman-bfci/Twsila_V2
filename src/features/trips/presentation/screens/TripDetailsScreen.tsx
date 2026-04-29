@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { Share } from 'react-native';
+import { shareTrip } from '@core/utils/sharing';
 import {
   useNavigation,
   useRoute,
@@ -36,7 +38,7 @@ import {
   Shadows,
 } from '@core/theme';
 import { DAYS_OF_WEEK, TripStatus } from '@core/constants';
-import { formatTime, formatCurrency } from '@core/utils/format';
+import { formatTime, formatCurrency, formatCityName } from '@core/utils/format';
 
 import { useAuth } from '@features/auth/presentation/context/AuthContext';
 import { tripsRepository } from '../../data/tripsRepository';
@@ -98,6 +100,10 @@ export const TripDetailsScreen: React.FC = () => {
     load();
   };
 
+  const handleShare = () => {
+    shareTrip(trip, t);
+  };
+
   const schedDays = trip.schedule_days ?? [];
 
   const timelineStops = [
@@ -147,7 +153,7 @@ export const TripDetailsScreen: React.FC = () => {
   return (
     <Screen background={Colors.surface}>
       <Header
-        title={trip.name || t('trips.tripDetails')}
+        title={`${formatCityName(trip.start_address)} → ${formatCityName(trip.end_address)}`}
         onBack={() => nav.goBack()}
         right={
           <Badge
@@ -155,7 +161,7 @@ export const TripDetailsScreen: React.FC = () => {
             tone={
               trip.status === TripStatus.Assigned ? 'success'
                 : trip.status === TripStatus.Bidding ? 'warning'
-                : 'primary'
+                  : 'primary'
             }
           />
         }
@@ -180,7 +186,7 @@ export const TripDetailsScreen: React.FC = () => {
                 style={styles.routeBadgeTitle}
                 numberOfLines={1}
               >
-                {shortAddress(trip.start_address)} → {shortAddress(trip.end_address)}
+                {formatCityName(trip.start_address)} → {formatCityName(trip.end_address)}
               </Text>
             </View>
           </View>
@@ -338,6 +344,15 @@ export const TripDetailsScreen: React.FC = () => {
             />
           </View>
         )}
+
+        <View style={{ marginTop: Spacing.md }}>
+          <Button
+            title={t('trips.shareTrip')}
+            variant="outline"
+            onPress={handleShare}
+            leftIcon={<Ionicons name="share-social-outline" size={20} color={Colors.primary} />}
+          />
+        </View>
       </ScrollView>
     </Screen>
   );

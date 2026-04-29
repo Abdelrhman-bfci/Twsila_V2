@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#3F51B5"
+      "backgroundColor": "#1F108E"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -26,7 +26,7 @@
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo.png",
-        "backgroundColor": "#3F51B5"
+        "backgroundColor": "#1F108E"
       },
       "package": "com.twsila.v2",
       "permissions": [

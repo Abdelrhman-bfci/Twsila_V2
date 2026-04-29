@@ -19,7 +19,7 @@ import {
   FontFamily,
   BorderRadius,
 } from '@core/theme';
-import { formatTime } from '@core/utils/format';
+import { formatTime, formatCityName } from '@core/utils/format';
 import { DAYS_OF_WEEK } from '@core/constants';
 
 import { useAuth } from '@features/auth/presentation/context/AuthContext';
@@ -75,7 +75,7 @@ export const MyTripsScreen: React.FC = () => {
                 <View style={styles.row}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.title} numberOfLines={1}>
-                      {trip.name || `${trip.start_address} → ${trip.end_address}`}
+                      {formatCityName(trip.start_address)} → {formatCityName(trip.end_address)}
                     </Text>
                     <Text style={styles.subtitle} numberOfLines={1}>
                       {trip.start_address} → {trip.end_address}

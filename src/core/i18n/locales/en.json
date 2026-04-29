@@ -158,6 +158,12 @@
     "memberCount": "{{ready}}/{{total}} ready",
     "perPassenger": "Per passenger",
     "tripFull": "Trip is full",
+    "shareTrip": "Share Trip",
+    "chooseShareOption": "Choose sharing option",
+    "copyLink": "Copy Link",
+    "shareToSocial": "Share to Social Media",
+    "linkCopied": "Link copied to clipboard",
+    "shareMessage": "🚌 *Trip Details* 🚌\n📍 From: {{from}}\n🏁 To: {{to}}\n⏰ Departure: {{time}}\n📅 Days: {{days}}\n\nCheck details here: {{url}}",
     "status": {
       "open": "Open",
       "pricing": "Pricing",
