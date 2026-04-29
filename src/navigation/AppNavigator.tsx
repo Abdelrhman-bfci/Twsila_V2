@@ -6,6 +6,7 @@ import { Colors } from '@core/theme';
 import { UserRole } from '@core/constants';
 
 import { useAuth } from '@features/auth/presentation/context/AuthContext';
+import { AppSplashScreen } from '@shared/components';
 import { AuthNavigator } from './AuthNavigator';
 import { PassengerNavigator } from './PassengerNavigator';
 import { CaptainNavigator } from './CaptainNavigator';
@@ -27,11 +28,7 @@ export const AppNavigator: React.FC = () => {
   const { user, initialising } = useAuth();
 
   if (initialising) {
-    return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    );
+    return <AppSplashScreen />;
   }
 
   return (
@@ -47,11 +44,4 @@ export const AppNavigator: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  loader: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.background,
-  },
-});
+const styles = StyleSheet.create({});

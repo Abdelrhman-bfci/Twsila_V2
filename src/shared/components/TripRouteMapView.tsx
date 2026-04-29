@@ -63,7 +63,7 @@ export const TripRouteMapView: React.FC<TripRouteMapViewProps> = ({
     if (useFallback || !mapRef.current || coords.length < 1) return;
     const t = setTimeout(() => {
       mapRef.current?.fitToCoordinates(
-        coords.map((c) => ({ latitude: c.lat, longitude: c.lng })),
+        coords.map((c) => ({ latitude: c.lat!, longitude: c.lng! })),
         {
           edgePadding: { top: 50, right: 40, bottom: 50, left: 40 },
           animated: true,
@@ -98,7 +98,7 @@ export const TripRouteMapView: React.FC<TripRouteMapViewProps> = ({
     );
   }
 
-  const line = coords.map((c) => ({ latitude: c.lat, longitude: c.lng }));
+  const line = coords.map((c) => ({ latitude: c.lat!, longitude: c.lng! }));
 
   return (
     <View style={[styles.wrap, { height }]}>
@@ -124,7 +124,7 @@ export const TripRouteMapView: React.FC<TripRouteMapViewProps> = ({
         {coords.map((p, i) => (
           <Marker
             key={`${p.lat}-${p.lng}-${i}`}
-            coordinate={{ latitude: p.lat, longitude: p.lng }}
+            coordinate={{ latitude: p.lat!, longitude: p.lng! }}
             title={p.label}
             {...(Platform.OS === 'ios' ? { pinColor: pinColor(p.type) } : {})}
           />

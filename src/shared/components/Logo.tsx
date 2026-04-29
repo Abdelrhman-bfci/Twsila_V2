@@ -30,22 +30,24 @@ export const Logo: React.FC<LogoProps> = ({
   const dimension = { width: size, height: size };
 
   if (variant === 'badge') {
+    const imgSize = size * 1.65; // Scale up further to fill circle edges like in LoginScreen
     return (
       <View
         style={[
           styles.badge,
           {
-            width: size + 24,
-            height: size + 24,
-            borderRadius: (size + 24) / 2,
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            overflow: 'hidden',
           },
           style,
         ]}
       >
         <Image
           source={LOGO_SOURCE}
-          resizeMode="contain"
-          style={[dimension, imageStyle]}
+          resizeMode="cover"
+          style={[{ width: imgSize, height: imgSize }, imageStyle]}
         />
       </View>
     );
@@ -68,7 +70,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: BorderRadius.pill,
-    ...Shadows.elevated,
   },
 });

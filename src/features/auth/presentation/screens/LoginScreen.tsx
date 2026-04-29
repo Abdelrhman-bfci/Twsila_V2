@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   Pressable,
   Alert,
   Image,
+  Animated,
+  Easing,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -39,6 +41,46 @@ export const LoginScreen: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ phone?: string; password?: string }>({});
+
+  // Animation values
+  const brandOpacity = useRef(new Animated.Value(0)).current;
+  const brandTranslateY = useRef(new Animated.Value(-20)).current;
+  const cardOpacity = useRef(new Animated.Value(0)).current;
+  const cardTranslateY = useRef(new Animated.Value(40)).current;
+
+  useEffect(() => {
+    // Brand animation
+    Animated.parallel([
+      Animated.timing(brandOpacity, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(brandTranslateY, {
+        toValue: 0,
+        duration: 800,
+        easing: Easing.out(Easing.back()),
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Card animation with delay
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(cardOpacity, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cardTranslateY, {
+          toValue: 0,
+          duration: 1000,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, 300);
+  }, []);
 
   const handleSignIn = async () => {
     const next: typeof errors = {};
@@ -79,7 +121,10 @@ export const LoginScreen: React.FC = () => {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.brandTop}>
+          <Animated.View style={[styles.brandTop, {
+            opacity: brandOpacity,
+            transform: [{ translateY: brandTranslateY }],
+          }]}>
             <View style={styles.logoCircle}>
               <Image
                 source={require('../../../../../assets/logo.png')}
@@ -89,9 +134,12 @@ export const LoginScreen: React.FC = () => {
             </View>
             <Text style={styles.appName}>{t('common.appName').toUpperCase()}</Text>
             <Text style={styles.tagline}>{t('common.tagline')}</Text>
-          </View>
+          </Animated.View>
 
-          <View style={styles.cardWrap}>
+          <Animated.View style={[styles.cardWrap, {
+            opacity: cardOpacity,
+            transform: [{ translateY: cardTranslateY }],
+          }]}>
             <View style={styles.card}>
               <Text style={styles.cardTitle}>{t('auth.welcomeBack')}</Text>
 
@@ -240,7 +288,7 @@ export const LoginScreen: React.FC = () => {
                 </View>
               </View>
             )}
-          </View>
+          </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
     </Screen>

@@ -1,16 +1,16 @@
 {
   "expo": {
-    "name": "Twsila V2",
+    "name": "Twsila",
     "slug": "twsila-v2",
     "version": "2.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/AppIcons/playstore.png",
     "userInterfaceStyle": "light",
     "jsEngine": "hermes",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#1F108E"
+      "backgroundColor": "#3F51B5"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -25,8 +25,8 @@
     "android": {
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#3730A3"
+        "foregroundImage": "./assets/logo.png",
+        "backgroundColor": "#3F51B5"
       },
       "package": "com.twsila.v2",
       "permissions": [
@@ -47,7 +47,7 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "00000000-0000-0000-0000-000000000000"
+        "projectId": "67ef930e-23c3-4d41-9b0f-7b5400d49c4a"
       }
     }
   }

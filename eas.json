@@ -15,7 +15,11 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_DEV_MODE": "false"
+        "EXPO_PUBLIC_DEV_MODE": "false",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://rbbyzqeodaaftmtdypfy.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_ognyYfzKeIFzlRioUKbpRQ_fZjOUSao",
+        "EXPO_PUBLIC_GOOGLE_MAPS_API_KEY": "AIzaSyDLfUZRAhGbaI4vnKZmWE9Dz0K-y9-42V8",
+        "EXPO_PUBLIC_GOOGLE_MAPS_KEY": "AIzaSyDLfUZRAhGbaI4vnKZmWE9Dz0K-y9-42V8"
       }
     },
     "preview": {
@@ -25,7 +29,11 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_DEV_MODE": "false"
+        "EXPO_PUBLIC_DEV_MODE": "false",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://rbbyzqeodaaftmtdypfy.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_ognyYfzKeIFzlRioUKbpRQ_fZjOUSao",
+        "EXPO_PUBLIC_GOOGLE_MAPS_API_KEY": "AIzaSyDLfUZRAhGbaI4vnKZmWE9Dz0K-y9-42V8",
+        "EXPO_PUBLIC_GOOGLE_MAPS_KEY": "AIzaSyDLfUZRAhGbaI4vnKZmWE9Dz0K-y9-42V8"
       }
     }
   },
