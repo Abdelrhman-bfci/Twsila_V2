@@ -34,19 +34,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // to leave the splash and land on Login after 8 seconds.
     const timeoutId = setTimeout(() => {
       if (!cancelled) {
+        console.log('[AuthContext] Safety timeout triggered - forcing initialization to complete');
         setUser(null);
         setInitialising(false);
       }
-    }, 8000);
+    }, 1500);
 
     (async () => {
       try {
         const restored = await authRepository.restoreSession();
         if (!cancelled) setUser(restored);
-      } catch {
+      } catch (err) {
+        console.error('[AuthContext] Error during session restoration:', err);
         if (!cancelled) setUser(null);
       } finally {
         if (!cancelled) {
+          console.log('[AuthContext] Initialization complete');
           clearTimeout(timeoutId);
           setInitialising(false);
         }
