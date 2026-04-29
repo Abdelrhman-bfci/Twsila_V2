@@ -1,11 +1,11 @@
 import React from 'react';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 
 import { Colors } from '@core/theme';
 import { UserRole } from '@core/constants';
 
 import { useAuth } from '@features/auth/presentation/context/AuthContext';
+import { SplashView } from '@shared/components/SplashView';
 import { AuthNavigator } from './AuthNavigator';
 import { PassengerNavigator } from './PassengerNavigator';
 import { CaptainNavigator } from './CaptainNavigator';
@@ -27,11 +27,7 @@ export const AppNavigator: React.FC = () => {
   const { user, initialising } = useAuth();
 
   if (initialising) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    );
+    return <SplashView />;
   }
 
   return (
@@ -46,12 +42,3 @@ export const AppNavigator: React.FC = () => {
     </NavigationContainer>
   );
 };
-
-const styles = StyleSheet.create({
-  loading: {
-    flex: 1,
-    backgroundColor: Colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

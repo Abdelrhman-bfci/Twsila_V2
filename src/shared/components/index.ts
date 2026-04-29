@@ -20,6 +20,7 @@ export * from './RouteTimeline';
 export * from './Screen';
 export * from './SectionHeader';
 export * from './Skeleton';
+export * from './SplashView';
 export * from './StatTile';
 export * from './StateView';
 export * from './Stepper';

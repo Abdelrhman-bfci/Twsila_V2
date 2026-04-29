@@ -27,16 +27,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [initialising, setInitialising] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
+    // Hard safety net: if anything in restoreSession hangs (e.g. a stuck
+    // Supabase getSession() call on a slow / offline network), force the app
+    // to leave the splash and land on Login after 8 seconds.
+    const timeoutId = setTimeout(() => {
+      if (!cancelled) {
+        setUser(null);
+        setInitialising(false);
+      }
+    }, 8000);
+
     (async () => {
       try {
         const restored = await authRepository.restoreSession();
-        setUser(restored);
+        if (!cancelled) setUser(restored);
       } catch {
-        setUser(null);
+        if (!cancelled) setUser(null);
       } finally {
-        setInitialising(false);
+        if (!cancelled) {
+          clearTimeout(timeoutId);
+          setInitialising(false);
+        }
       }
     })();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   const signIn = useCallback(async (phone: string, password: string) => {
