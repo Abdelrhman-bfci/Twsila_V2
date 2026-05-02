@@ -193,7 +193,7 @@
     "copyLink": "نسخ الرابط",
     "shareToSocial": "مشاركة عبر وسائل التواصل",
     "linkCopied": "تم نسخ الرابط",
-    "shareMessage": "🚌 *تفاصيل الرحلة* 🚌\n📍 من: {{from}}\n🏁 إلى: {{to}}\n⏰ وقت الانطلاق: {{time}}\n📅 الأيام: {{days}}\n\nالتفاصيل هنا: {{url}}",
+    "shareMessage": "🚌 تفاصيل الرحلة\n📍 من: {{from}}\n🏁 إلى: {{to}}\n🔁 نوع الرحلة: {{tripType}}\n💺 المقاعد: {{seats}}\n⏰ وقت الانطلاق: {{time}}\n📅 الأيام: {{days}}\n\nافتح الرحلة: {{url}}",
     "createSteps": {
       "route": "المسار",
       "schedule": "الجدول",

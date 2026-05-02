@@ -193,7 +193,7 @@
     "copyLink": "Copy link",
     "shareToSocial": "Share to social media",
     "linkCopied": "Link copied to clipboard",
-    "shareMessage": "🚌 *Trip Details* 🚌\n📍 From: {{from}}\n🏁 To: {{to}}\n⏰ Departure: {{time}}\n📅 Days: {{days}}\n\nCheck details here: {{url}}",
+    "shareMessage": "🚌 Trip details\n📍 From: {{from}}\n🏁 To: {{to}}\n🔁 Trip type: {{tripType}}\n💺 Seats: {{seats}}\n⏰ Departure: {{time}}\n📅 Days: {{days}}\n\nOpen the trip: {{url}}",
     "createSteps": {
       "route": "Route",
       "schedule": "Schedule",

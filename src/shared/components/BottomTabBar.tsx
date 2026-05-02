@@ -70,24 +70,40 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({
             accessibilityRole="button"
             accessibilityState={focused ? { selected: true } : {}}
             onPress={onPress}
-            style={styles.itemPress}
+            android_ripple={{
+              color: Colors.primarySoft,
+              borderless: false,
+            }}
+            style={({ pressed }) => [
+              styles.itemPress,
+              Platform.OS === 'web' && pressed && styles.itemPressWebHover,
+            ]}
           >
-            <View style={[styles.item, focused && styles.itemActive]}>
-              <Ionicons
-                name={focused ? icons.active : icons.inactive}
-                size={focused ? 22 : 20}
-                color={focused ? Colors.primary : Colors.textLight}
-              />
-              <Text
+            {({ pressed }) => (
+              <View
                 style={[
-                  styles.label,
-                  focused && styles.labelActive,
+                  styles.item,
+                  focused && styles.itemActive,
+                  pressed && !focused && styles.itemPressed,
                 ]}
-                numberOfLines={1}
               >
-                {label}
-              </Text>
-            </View>
+                <Ionicons
+                  name={focused ? icons.active : icons.inactive}
+                  size={focused ? 23 : 20}
+                  color={focused ? Colors.primary : Colors.textLight}
+                />
+                <Text
+                  style={[
+                    styles.label,
+                    focused && styles.labelActive,
+                    pressed && styles.labelPressed,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {label}
+                </Text>
+              </View>
+            )}
           </Pressable>
         );
       })}
@@ -110,27 +126,43 @@ const styles = StyleSheet.create({
   itemPress: {
     flex: 1,
     alignItems: 'center',
+    borderRadius: BorderRadius.xl,
+    overflow: 'hidden',
+  },
+  itemPressWebHover: {
+    opacity: 0.92,
   },
   item: {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Spacing.md,
-    paddingVertical: 8,
+    paddingVertical: 9,
     borderRadius: BorderRadius.xl,
-    minWidth: 64,
+    minWidth: 68,
+    width: '100%',
+    maxWidth: 120,
+    alignSelf: 'center',
   },
   itemActive: {
     backgroundColor: Colors.primarySoft,
   },
+  itemPressed: {
+    backgroundColor: Colors.surface1,
+    transform: [{ scale: 0.97 }],
+  },
   label: {
-    marginTop: 4,
+    marginTop: 5,
     fontSize: 11,
     color: Colors.textLight,
     fontFamily: FontFamily.semiBold,
+    letterSpacing: 0.15,
   },
   labelActive: {
     color: Colors.primary,
     fontFamily: FontFamily.bold,
+  },
+  labelPressed: {
+    color: Colors.text,
   },
 });

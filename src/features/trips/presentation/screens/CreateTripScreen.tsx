@@ -46,7 +46,7 @@ import {
   ResolvedPlace,
 } from '@core/services/googleMapsApi';
 import { useResponsiveLayout } from '@shared/hooks';
-import { formatTime } from '@core/utils/format';
+import { formatTime, formatPlaceName } from '@core/utils/format';
 
 import { useAuth } from '@features/auth/presentation/context/AuthContext';
 import { tripsRepository } from '../../data/tripsRepository';
@@ -109,7 +109,7 @@ export const CreateTripScreen: React.FC = () => {
     if (start.address.trim()) {
       out.push({
         type: 'start',
-        label: shortLabel(start.address),
+        label: formatPlaceName(start.address, 28),
         lat: start.lat,
         lng: start.lng,
       });
@@ -118,7 +118,7 @@ export const CreateTripScreen: React.FC = () => {
       if (!s.address.trim()) return;
       out.push({
         type: 'middle',
-        label: shortLabel(s.address),
+        label: formatPlaceName(s.address, 28),
         lat: s.lat,
         lng: s.lng,
       });
@@ -126,7 +126,7 @@ export const CreateTripScreen: React.FC = () => {
     if (end.address.trim()) {
       out.push({
         type: 'end',
-        label: shortLabel(end.address),
+        label: formatPlaceName(end.address, 28),
         lat: end.lat,
         lng: end.lng,
       });
@@ -226,7 +226,7 @@ export const CreateTripScreen: React.FC = () => {
 
       const trip = await tripsRepository.createTrip({
         admin_id: user.id,
-        name: `${startP.address.trim()} → ${endP.address.trim()}`,
+        name: `${formatPlaceName(startP.address)} → ${formatPlaceName(endP.address)}`,
         start_address: startP.address.trim(),
         start_lat: startP.lat,
         start_lng: startP.lng,
@@ -256,11 +256,20 @@ export const CreateTripScreen: React.FC = () => {
   const dayLabel = (dow: number) =>
     t(`days.${DAYS_OF_WEEK.find((x) => x.value === dow)?.key || 'sun'}`);
 
+  const placeTitleLine =
+    start.address.trim() && end.address.trim()
+      ? `${formatPlaceName(start.address)} → ${formatPlaceName(end.address)}`
+      : null;
+
+  const headerSubtitle = [placeTitleLine, `${stepIndex + 1} / ${steps.length}`]
+    .filter(Boolean)
+    .join(' · ');
+
   return (
     <Screen background={Colors.surface}>
       <Header
-        title={t('trips.createTrip')}
-        subtitle={`${stepIndex + 1} / ${steps.length}`}
+        title={steps[stepIndex].title}
+        subtitle={headerSubtitle}
         onBack={goBack}
       />
       <KeyboardAvoidingView
@@ -588,7 +597,7 @@ export const CreateTripScreen: React.FC = () => {
                   stops={[
                     {
                       label: t('trips.startPoint'),
-                      address: start.address,
+                      address: formatPlaceName(start.address),
                       type: 'start' as const,
                       meta: formatTime(departureTime),
                     },
@@ -596,12 +605,12 @@ export const CreateTripScreen: React.FC = () => {
                       .filter((s) => s.address.trim())
                       .map((s, i) => ({
                         label: t('trips.intermediateStop', { n: i + 1 }),
-                        address: s.address,
+                        address: formatPlaceName(s.address),
                         type: 'middle' as const,
                       })),
                     {
                       label: t('trips.endPoint'),
-                      address: end.address,
+                      address: formatPlaceName(end.address),
                       type: 'end' as const,
                     },
                   ]}
@@ -625,6 +634,13 @@ export const CreateTripScreen: React.FC = () => {
                 size="sm"
                 onPress={goBack}
                 fullWidth={false}
+                leftIcon={
+                  <Ionicons
+                    name={isRTL() ? 'chevron-forward' : 'chevron-back'}
+                    size={18}
+                    color={Colors.primary}
+                  />
+                }
               />
             ) : null}
             <View style={{ flex: 1 }} />
@@ -635,8 +651,8 @@ export const CreateTripScreen: React.FC = () => {
                 fullWidth={false}
                 rightIcon={
                   <Ionicons
-                    name={isRTL() ? 'arrow-back' : 'arrow-forward'}
-                    size={16}
+                    name={isRTL() ? 'chevron-back' : 'chevron-forward'}
+                    size={18}
                     color={Colors.onPrimary}
                   />
                 }
@@ -661,14 +677,6 @@ export const CreateTripScreen: React.FC = () => {
       </KeyboardAvoidingView>
     </Screen>
   );
-};
-
-const shortLabel = (address: string): string => {
-  const t = address.trim();
-  if (!t) return '—';
-  const first = t.split(/[-•·,–—]/)[0]?.trim() || t;
-  if (first.length <= 24) return first;
-  return `${first.slice(0, 22).trim()}…`;
 };
 
 const toIso = (d: Date): string => {
