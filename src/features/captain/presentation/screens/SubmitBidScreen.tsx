@@ -41,7 +41,7 @@ import {
   DAYS_OF_WEEK,
   OfferStatus,
 } from '@core/constants';
-import { formatCurrency, formatTime } from '@core/utils/format';
+import { formatCityName, formatCurrency, formatTime } from '@core/utils/format';
 import { useResponsiveLayout } from '@shared/hooks';
 
 import { useAuth } from '@features/auth/presentation/context/AuthContext';
@@ -227,7 +227,8 @@ export const SubmitBidScreen: React.FC = () => {
       <View style={styles.headerRow}>
         <View style={{ flex: 1 }}>
           <Text style={styles.tripName} numberOfLines={2}>
-            {trip.name || `${trip.start_address} → ${trip.end_address}`}
+            {trip.name ||
+              `${formatCityName(trip.start_address)} → ${formatCityName(trip.end_address)}`}
           </Text>
           <Text style={styles.tripMeta}>
             {formatTime(trip.departure_time)}
@@ -240,7 +241,7 @@ export const SubmitBidScreen: React.FC = () => {
       <View style={styles.routeRow}>
         <Ionicons name="navigate" size={14} color={Colors.primary} />
         <Text style={styles.routeText} numberOfLines={2}>
-          {trip.start_address} → {trip.end_address}
+          {formatCityName(trip.start_address)} → {formatCityName(trip.end_address)}
         </Text>
       </View>
 

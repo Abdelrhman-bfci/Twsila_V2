@@ -283,7 +283,8 @@ export const MyTripsScreen: React.FC = () => {
                           {formatCityName(trip.end_address)}
                         </Text>
                         <Text style={styles.subtitle} numberOfLines={1}>
-                          {trip.start_address} → {trip.end_address}
+                          {formatCityName(trip.start_address)} →{' '}
+                          {formatCityName(trip.end_address)}
                         </Text>
                       </View>
                       {isAdmin ? (

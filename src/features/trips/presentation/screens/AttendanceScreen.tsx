@@ -231,7 +231,9 @@ export const AttendanceScreen: React.FC = () => {
           <Text style={styles.subtitle}>
             <Ionicons name="time-outline" size={11} />{' '}
             {formatTime(trip.departure_time)} ·{' '}
-            <Ionicons name="location-outline" size={11} /> {trip.start_address}
+            <Ionicons name="location-outline" size={11} />{' '}
+            {formatCityName(trip.start_address)} →{' '}
+            {formatCityName(trip.end_address)}
           </Text>
         </View>
       </View>

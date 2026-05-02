@@ -19,6 +19,95 @@ import {
 const matchText = (haystack: string, needle?: string) =>
   !needle || haystack.toLowerCase().includes(needle.trim().toLowerCase());
 
+/** Strip ILIKE wildcards from user input (PostgREST `ilike` patterns). */
+const sanitizeIlikeFragment = (raw?: string): string | undefined => {
+  const t = raw?.trim();
+  if (!t) return undefined;
+  const stripped = t.replace(/[%_\\]/g, '').trim();
+  return stripped.length ? stripped : undefined;
+};
+
+/** Pickup / origin: match trip start or any waypoint along the route (not final only). */
+const tripMatchesPickupSearch = (t: Trip, needle?: string): boolean => {
+  if (!needle?.trim()) return true;
+  if (matchText(t.start_address, needle)) return true;
+  return (t.stops ?? []).some((s) => matchText(s.address, needle));
+};
+
+/** Destination: match trip end or any waypoint (same corridor as passenger destination). */
+const tripMatchesDropoffSearch = (t: Trip, needle?: string): boolean => {
+  if (!needle?.trim()) return true;
+  if (matchText(t.end_address, needle)) return true;
+  return (t.stops ?? []).some((s) => matchText(s.address, needle));
+};
+
+const tripMatchesRouteFilters = (t: Trip, filters: TripSearchFilters): boolean =>
+  tripMatchesPickupSearch(t, filters.startQuery) &&
+  tripMatchesDropoffSearch(t, filters.endQuery);
+
+async function resolveTripIdsForRouteSearch(filters: {
+  startQuery?: string;
+  endQuery?: string;
+}): Promise<{ mode: 'all' } | { mode: 'ids'; ids: string[] }> {
+  const pickNeedle = sanitizeIlikeFragment(filters.startQuery);
+  const dropNeedle = sanitizeIlikeFragment(filters.endQuery);
+  if (!pickNeedle && !dropNeedle) return { mode: 'all' };
+
+  const idsForPickup = async (needle: string): Promise<Set<string>> => {
+    const ids = new Set<string>();
+    const p = `%${needle}%`;
+    const { data: fromTrips } = await supabase
+      .from('trips')
+      .select('id')
+      .ilike('start_address', p);
+    (fromTrips as { id: string }[] | null)?.forEach((r) => ids.add(r.id));
+    const { data: fromStops } = await supabase
+      .from('trip_stops')
+      .select('trip_id')
+      .ilike('address', p);
+    (fromStops as { trip_id: string }[] | null)?.forEach((r) => ids.add(r.trip_id));
+    return ids;
+  };
+
+  const idsForDropoff = async (needle: string): Promise<Set<string>> => {
+    const ids = new Set<string>();
+    const p = `%${needle}%`;
+    const { data: fromTrips } = await supabase
+      .from('trips')
+      .select('id')
+      .ilike('end_address', p);
+    (fromTrips as { id: string }[] | null)?.forEach((r) => ids.add(r.id));
+    const { data: fromStops } = await supabase
+      .from('trip_stops')
+      .select('trip_id')
+      .ilike('address', p);
+    (fromStops as { trip_id: string }[] | null)?.forEach((r) => ids.add(r.trip_id));
+    return ids;
+  };
+
+  if (pickNeedle && dropNeedle) {
+    const [pickIds, dropIds] = await Promise.all([
+      idsForPickup(pickNeedle),
+      idsForDropoff(dropNeedle),
+    ]);
+    if (!pickIds.size || !dropIds.size) return { mode: 'ids', ids: [] };
+    const merged = [...pickIds].filter((id) => dropIds.has(id));
+    return { mode: 'ids', ids: merged };
+  }
+
+  if (pickNeedle) {
+    const pickIds = await idsForPickup(pickNeedle);
+    return { mode: 'ids', ids: pickIds.size ? [...pickIds] : [] };
+  }
+
+  if (dropNeedle) {
+    const dropIds = await idsForDropoff(dropNeedle);
+    return { mode: 'ids', ids: dropIds.size ? [...dropIds] : [] };
+  }
+
+  return { mode: 'all' };
+}
+
 const cloneTrip = (t: Trip): Trip => ({
   ...t,
   stops: [...t.stops],
@@ -65,11 +154,7 @@ export const tripsRepository = {
   async listTrips(filters: TripSearchFilters = {}): Promise<Trip[]> {
     if (isDevMode()) {
       return dummyTrips
-        .filter(
-          (t) =>
-            matchText(t.start_address, filters.startQuery) &&
-            matchText(t.end_address, filters.endQuery)
-        )
+        .filter((t) => tripMatchesRouteFilters(t, filters))
         .filter(
           (t) =>
             !filters.days?.length ||
@@ -78,11 +163,11 @@ export const tripsRepository = {
         .map(cloneTrip);
     }
 
+    const resolved = await resolveTripIdsForRouteSearch(filters);
+    if (resolved.mode === 'ids' && resolved.ids.length === 0) return [];
+
     let query = supabase.from('trips').select(tripRelationsQuery);
-    if (filters.startQuery)
-      query = query.ilike('start_address', `%${filters.startQuery}%`);
-    if (filters.endQuery)
-      query = query.ilike('end_address', `%${filters.endQuery}%`);
+    if (resolved.mode === 'ids') query = query.in('id', resolved.ids);
     const { data, error } = await query;
     if (error) throw error;
     return (data || []).map(mapDbTripToModel);
@@ -129,17 +214,19 @@ export const tripsRepository = {
             (t.status === TripStatus.Pricing ||
               t.status === TripStatus.Bidding ||
               t.status === TripStatus.Open) &&
-            matchText(t.start_address, filters.startQuery) &&
-            matchText(t.end_address, filters.endQuery)
+            tripMatchesRouteFilters(t, filters)
         )
         .map(cloneTrip);
     }
+
+    const resolved = await resolveTripIdsForRouteSearch(filters);
+    if (resolved.mode === 'ids' && resolved.ids.length === 0) return [];
+
     let q = supabase
       .from('trips')
       .select(tripRelationsQuery)
       .in('status', [TripStatus.Open, TripStatus.Pricing, TripStatus.Bidding]);
-    if (filters.startQuery) q = q.ilike('start_address', `%${filters.startQuery}%`);
-    if (filters.endQuery) q = q.ilike('end_address', `%${filters.endQuery}%`);
+    if (resolved.mode === 'ids') q = q.in('id', resolved.ids);
     const { data } = await q;
     return (data || []).map(mapDbTripToModel);
   },

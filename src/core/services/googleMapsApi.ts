@@ -4,6 +4,10 @@
  * Set EXPO_PUBLIC_GOOGLE_MAPS_API_KEY in .env
  */
 
+import i18n from '../i18n';
+
+const mapsLanguage = (): string => (i18n.language === 'ar' ? 'ar' : 'en');
+
 export interface AutocompletePrediction {
   place_id: string;
   description: string;
@@ -33,7 +37,7 @@ export async function fetchPlaceAutocomplete(
   const params = new URLSearchParams({
     input: input.trim(),
     key,
-    language: 'en',
+    language: mapsLanguage(),
   });
   const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?${params.toString()}`;
 
@@ -58,6 +62,7 @@ export async function fetchPlaceDetails(
     place_id: placeId,
     fields,
     key,
+    language: mapsLanguage(),
   });
   const url = `https://maps.googleapis.com/maps/api/place/details/json?${params.toString()}`;
 
@@ -93,6 +98,7 @@ export async function geocodeAddress(
   const params = new URLSearchParams({
     address: address.trim(),
     key,
+    language: mapsLanguage(),
   });
   const url = `https://maps.googleapis.com/maps/api/geocode/json?${params.toString()}`;
 

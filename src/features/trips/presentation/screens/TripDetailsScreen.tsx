@@ -220,19 +220,19 @@ export const TripDetailsScreen: React.FC = () => {
   const timelineStops = [
     {
       label: t('trips.startPoint'),
-      address: trip.start_address,
+      address: formatCityName(trip.start_address),
       type: 'start' as const,
       meta: formatTime(trip.departure_time),
     },
     ...stops.map((s) => ({
       label: t('trips.intermediateStop', { n: s.stop_order + 1 }),
-      address: s.address,
+      address: formatCityName(s.address),
       type: 'middle' as const,
       meta: s.distance_from_start_km ? `${s.distance_from_start_km} km` : undefined,
     })),
     {
       label: t('trips.endPoint'),
-      address: trip.end_address,
+      address: formatCityName(trip.end_address),
       type: 'end' as const,
       meta: trip.distance_km ? `${trip.distance_km} km` : undefined,
     },
@@ -241,19 +241,19 @@ export const TripDetailsScreen: React.FC = () => {
   const routeMapPoints: RouteMapPoint[] = [
     {
       type: 'start',
-      label: shortAddress(trip.start_address),
+      label: formatCityName(trip.start_address, 28),
       lat: trip.start_lat,
       lng: trip.start_lng,
     },
     ...stops.map((s) => ({
       type: 'middle' as const,
-      label: shortAddress(s.address),
+      label: formatCityName(s.address, 28),
       lat: s.lat,
       lng: s.lng,
     })),
     {
       type: 'end',
-      label: shortAddress(trip.end_address),
+      label: formatCityName(trip.end_address, 28),
       lat: trip.end_lat,
       lng: trip.end_lng,
     },
@@ -417,7 +417,9 @@ export const TripDetailsScreen: React.FC = () => {
                     </Pressable>
                   ) : (
                     <Text style={styles.passengerMeta}>
-                      {p.pickup_address || '—'}
+                      {p.pickup_address
+                        ? formatCityName(p.pickup_address)
+                        : '—'}
                       {p.distance_km ? ` · ${p.distance_km} km` : ''}
                     </Text>
                   )}
@@ -633,13 +635,6 @@ export const TripDetailsScreen: React.FC = () => {
       </ScrollView>
     </Screen>
   );
-};
-
-const shortAddress = (address?: string): string => {
-  if (!address) return '—';
-  const first = address.split(/[-•·,–—]/)[0]?.trim() || address;
-  if (first.length <= 26) return first;
-  return `${first.slice(0, 24).trim()}…`;
 };
 
 const styles = StyleSheet.create({

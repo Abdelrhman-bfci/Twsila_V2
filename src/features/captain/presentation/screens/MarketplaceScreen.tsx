@@ -337,7 +337,8 @@ export const MarketplaceScreen: React.FC = () => {
                         </Text>
                         <Text style={styles.tripRoute} numberOfLines={1}>
                           <Ionicons name="navigate-outline" size={11} />{' '}
-                          {trip.start_address} → {trip.end_address}
+                          {formatCityName(trip.start_address)} →{' '}
+                          {formatCityName(trip.end_address)}
                         </Text>
                       </View>
                       {isAssigned ? (

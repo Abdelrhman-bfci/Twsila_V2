@@ -31,7 +31,12 @@ import {
   BorderRadius,
 } from '@core/theme';
 import { OfferStatus, DAYS_OF_WEEK } from '@core/constants';
-import { formatCurrency, formatTime, formatLongDate } from '@core/utils/format';
+import {
+  formatCityName,
+  formatCurrency,
+  formatTime,
+  formatLongDate,
+} from '@core/utils/format';
 import { useResponsiveLayout } from '@shared/hooks';
 
 import { useAuth } from '@features/auth/presentation/context/AuthContext';
@@ -351,11 +356,14 @@ export const MyBidsScreen: React.FC = () => {
                       <View style={{ flex: 1 }}>
                         <Text style={styles.title} numberOfLines={1}>
                           {trip.name ||
-                            `${trip.start_address} → ${trip.end_address}`}
+                            `${formatCityName(trip.start_address)} → ${formatCityName(
+                              trip.end_address
+                            )}`}
                         </Text>
                         <Text style={styles.subtitle} numberOfLines={1}>
                           <Ionicons name="navigate-outline" size={11} />{' '}
-                          {trip.start_address} → {trip.end_address}
+                          {formatCityName(trip.start_address)} →{' '}
+                          {formatCityName(trip.end_address)}
                         </Text>
                       </View>
                       <Badge

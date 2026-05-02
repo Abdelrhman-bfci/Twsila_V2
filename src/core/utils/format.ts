@@ -39,17 +39,96 @@ export const formatLongDate = (date: Date | string, lang?: string): string => {
   });
 };
 
-/** First segment of a geocoded line (POI / area name), not the full address. */
-export const formatPlaceName = (address: string, maxLen = 56): string => {
-  if (!address) return '';
-  const normalized = address.replace(/\u060C/g, ',').trim();
-  const parts = normalized.split(',').map((p) => p.trim()).filter(Boolean);
-  const head = parts[0] || normalized;
-  if (head.length <= maxLen) return head;
-  const slice = head.slice(0, Math.max(4, maxLen - 1)).trim();
+const truncateLabel = (value: string, maxLen: number): string => {
+  const t = value.trim();
+  if (!t) return '';
+  if (t.length <= maxLen) return t;
+  const slice = t.slice(0, Math.max(4, maxLen - 1)).trim();
   return `${slice}…`;
 };
 
-/** Short location label (legacy callers); prefers the leading place segment. */
-export const formatCityName = (address: string): string =>
-  formatPlaceName(address, 120);
+/** Heuristic: last segment is often country; city is usually just before it. */
+const isLikelyCountrySegment = (segment: string): boolean => {
+  const t = segment.trim().toLowerCase();
+  if (t.length < 3) return false;
+  const hints = [
+    'egypt',
+    'مصر',
+    'emirates',
+    'الإمارات',
+    'uae',
+    'saudi',
+    'السعودية',
+    'kuwait',
+    'الكويت',
+    'qatar',
+    'قطر',
+    'bahrain',
+    'البحرين',
+    'oman',
+    'عمان',
+    'jordan',
+    'الأردن',
+    'iraq',
+    'العراق',
+    'syria',
+    'سوريا',
+    'lebanon',
+    'لبنان',
+    'palestine',
+    'فلسطين',
+    'morocco',
+    'المغرب',
+    'tunisia',
+    'تونس',
+    'algeria',
+    'الجزائر',
+    'libya',
+    'ليبيا',
+    'sudan',
+    'السودان',
+    'yemen',
+    'اليمن',
+    'usa',
+    'united states',
+    'united kingdom',
+    'england',
+    'france',
+    'germany',
+    'spain',
+    'italy',
+    'india',
+    'china',
+  ];
+  return hints.some((h) => t === h || t.includes(h));
+};
+
+/** Best-effort city / locality from a formatted address line. */
+export const extractCityFromAddress = (address: string): string => {
+  if (!address) return '';
+  const normalized = address.replace(/\u060C/g, ',').trim();
+  const parts = normalized.split(',').map((p) => p.trim()).filter(Boolean);
+  if (parts.length >= 3) {
+    return parts[parts.length - 2];
+  }
+  if (parts.length === 2) {
+    const a = parts[0];
+    const b = parts[1];
+    if (isLikelyCountrySegment(b)) return a;
+    return b;
+  }
+  if (parts.length === 1) {
+    const dashParts = normalized.split(/\s*[-–—]\s/).map((p) => p.trim()).filter(Boolean);
+    if (dashParts.length >= 2) return dashParts[dashParts.length - 1];
+    return parts[0];
+  }
+  return normalized;
+};
+
+/** City-style label for UI (Arabic-friendly when address came from Maps `language=ar`). */
+export const formatCityName = (address: string, maxLen = 80): string =>
+  truncateLabel(extractCityFromAddress(address), maxLen);
+
+/** @deprecated Prefer formatCityName — same behavior (city/locality only). */
+export const formatPlaceName = (address: string, maxLen = 56): string =>
+  formatCityName(address, maxLen);

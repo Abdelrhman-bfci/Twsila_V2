@@ -286,7 +286,9 @@ export const PricingScreen: React.FC = () => {
                           <Text style={styles.pName}>{p.user_name}</Text>
                           <Text style={styles.pMeta} numberOfLines={2}>
                             <Ionicons name="location-outline" size={11} />{' '}
-                            {p.pickup_address || '—'}
+                            {p.pickup_address
+                              ? formatCityName(p.pickup_address)
+                              : '—'}
                           </Text>
                           {p.distance_km ? (
                             <Badge

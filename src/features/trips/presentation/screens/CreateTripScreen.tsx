@@ -46,7 +46,7 @@ import {
   ResolvedPlace,
 } from '@core/services/googleMapsApi';
 import { useResponsiveLayout } from '@shared/hooks';
-import { formatTime, formatPlaceName } from '@core/utils/format';
+import { formatTime, formatCityName } from '@core/utils/format';
 
 import { useAuth } from '@features/auth/presentation/context/AuthContext';
 import { tripsRepository } from '../../data/tripsRepository';
@@ -109,7 +109,7 @@ export const CreateTripScreen: React.FC = () => {
     if (start.address.trim()) {
       out.push({
         type: 'start',
-        label: formatPlaceName(start.address, 28),
+        label: formatCityName(start.address, 28),
         lat: start.lat,
         lng: start.lng,
       });
@@ -118,7 +118,7 @@ export const CreateTripScreen: React.FC = () => {
       if (!s.address.trim()) return;
       out.push({
         type: 'middle',
-        label: formatPlaceName(s.address, 28),
+        label: formatCityName(s.address, 28),
         lat: s.lat,
         lng: s.lng,
       });
@@ -126,7 +126,7 @@ export const CreateTripScreen: React.FC = () => {
     if (end.address.trim()) {
       out.push({
         type: 'end',
-        label: formatPlaceName(end.address, 28),
+        label: formatCityName(end.address, 28),
         lat: end.lat,
         lng: end.lng,
       });
@@ -226,7 +226,7 @@ export const CreateTripScreen: React.FC = () => {
 
       const trip = await tripsRepository.createTrip({
         admin_id: user.id,
-        name: `${formatPlaceName(startP.address)} → ${formatPlaceName(endP.address)}`,
+        name: `${formatCityName(startP.address)} → ${formatCityName(endP.address)}`,
         start_address: startP.address.trim(),
         start_lat: startP.lat,
         start_lng: startP.lng,
@@ -258,7 +258,7 @@ export const CreateTripScreen: React.FC = () => {
 
   const placeTitleLine =
     start.address.trim() && end.address.trim()
-      ? `${formatPlaceName(start.address)} → ${formatPlaceName(end.address)}`
+      ? `${formatCityName(start.address)} → ${formatCityName(end.address)}`
       : null;
 
   const headerSubtitle = [placeTitleLine, `${stepIndex + 1} / ${steps.length}`]
@@ -597,7 +597,7 @@ export const CreateTripScreen: React.FC = () => {
                   stops={[
                     {
                       label: t('trips.startPoint'),
-                      address: formatPlaceName(start.address),
+                      address: formatCityName(start.address),
                       type: 'start' as const,
                       meta: formatTime(departureTime),
                     },
@@ -605,12 +605,12 @@ export const CreateTripScreen: React.FC = () => {
                       .filter((s) => s.address.trim())
                       .map((s, i) => ({
                         label: t('trips.intermediateStop', { n: i + 1 }),
-                        address: formatPlaceName(s.address),
+                        address: formatCityName(s.address),
                         type: 'middle' as const,
                       })),
                     {
                       label: t('trips.endPoint'),
-                      address: formatPlaceName(end.address),
+                      address: formatCityName(end.address),
                       type: 'end' as const,
                     },
                   ]}
