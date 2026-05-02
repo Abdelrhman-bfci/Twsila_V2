@@ -20,7 +20,7 @@
     "android": {
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/AppIcons/playstore.png",
+        "foregroundImage": "./assets/AppIcons/logo.png",
         "backgroundColor": "#1F108E"
       },
       "package": "com.twsila.v2",
