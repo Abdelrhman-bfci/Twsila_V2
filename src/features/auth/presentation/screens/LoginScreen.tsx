@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...Shadows.elevated,
   },
-  logoImg: { width: 200, height: 200 },
+  logoImg: { width: 165, height: 165 },
   appName: {
     marginTop: Spacing.md,
     fontSize: 30,

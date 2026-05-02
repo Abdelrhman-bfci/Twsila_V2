@@ -143,7 +143,6 @@ export const Header: React.FC<HeaderProps> = ({
             style={styles.title}
             numberOfLines={2}
             ellipsizeMode="tail"
-            textAlign="center"
           >
             {title}
           </Text>
@@ -153,7 +152,6 @@ export const Header: React.FC<HeaderProps> = ({
             style={styles.subtitle}
             numberOfLines={2}
             ellipsizeMode="tail"
-            textAlign="center"
           >
             {subtitle}
           </Text>
