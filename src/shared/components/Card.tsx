@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceLowest,
     borderRadius: BorderRadius.lg,
   },
-  padded: { padding: Spacing.md },
+  padded: { padding: Spacing.sm },
   elevated: { ...Shadows.card },
   outlined: {
     borderWidth: 1,

@@ -1,5 +1,4 @@
-import { Share, Alert } from 'react-native';
-import * as Clipboard from 'expo-clipboard';
+import { Share } from 'react-native';
 import { TFunction } from 'i18next';
 import { Trip } from '@features/trips/domain/models/Trip';
 import { formatTime, formatCityName } from './format';
@@ -19,35 +18,12 @@ export const shareTrip = async (trip: Trip, t: TFunction) => {
     url: tripUrl,
   });
 
-  Alert.alert(
-    t('trips.shareTrip'),
-    t('trips.chooseShareOption'),
-    [
-      {
-        text: t('trips.copyLink'),
-        onPress: async () => {
-          await Clipboard.setStringAsync(tripUrl);
-          Alert.alert(t('common.success'), t('trips.linkCopied'));
-        },
-      },
-      {
-        text: t('trips.shareToSocial'),
-        onPress: async () => {
-          try {
-            await Share.share({
-              message: shareMessage,
-              url: tripUrl,
-            });
-          } catch (error) {
-            console.error(error);
-          }
-        },
-      },
-      {
-        text: t('common.cancel'),
-        style: 'cancel',
-      },
-    ],
-    { cancelable: true }
-  );
+  try {
+    await Share.share({
+      message: shareMessage,
+      url: tripUrl,
+    });
+  } catch (error) {
+    console.error(error);
+  }
 };

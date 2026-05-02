@@ -7,6 +7,7 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
+  I18nManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -21,8 +22,10 @@ import {
   Header,
   Input,
   KeyValueRow,
+  RouteTimeline,
   Screen,
   SectionHeader,
+  StatTile,
   Stepper,
 } from '@shared/components';
 import { PlacesAutocompleteField } from '@shared/components/PlacesAutocompleteField';
@@ -30,13 +33,8 @@ import {
   TripRouteMapView,
   RouteMapPoint,
 } from '@shared/components/TripRouteMapView';
-import {
-  Colors,
-  Spacing,
-  FontFamily,
-  BorderRadius,
-  Shadows,
-} from '@core/theme';
+import { Spacing, Colors, BorderRadius, FontFamily } from '@core/theme';
+import { isRTL } from '@core/i18n';
 import {
   DEFAULT_DEPARTURE_TIME,
   DEFAULT_TRIP_SEATS,
@@ -86,6 +84,7 @@ export const CreateTripScreen: React.FC = () => {
   const [stops, setStops] = useState<RoutePoint[]>([]);
   const [departureTime, setDepartureTime] = useState(DEFAULT_DEPARTURE_TIME);
   const [totalSeats, setTotalSeats] = useState(String(DEFAULT_TRIP_SEATS));
+  const [isRoundTrip, setIsRoundTrip] = useState(false);
   const [selectedDates, setSelectedDates] = useState<string[]>(() =>
     defaultMonthSelection()
   );
@@ -244,6 +243,7 @@ export const CreateTripScreen: React.FC = () => {
         active_to: activeTo || undefined,
         departure_time: departureTime,
         total_seats: parseInt(totalSeats, 10) || DEFAULT_TRIP_SEATS,
+        is_round_trip: isRoundTrip,
       });
       nav.replace('TripDetails', { tripId: trip.id });
     } catch (e) {
@@ -369,18 +369,18 @@ export const CreateTripScreen: React.FC = () => {
                           }
                           leftIcon="pin"
                         />
-                        <Pressable
-                          style={styles.removeStopBtn}
-                          onPress={() => removeStop(i)}
-                          hitSlop={8}
-                        >
-                          <Ionicons
-                            name="trash-outline"
-                            size={18}
-                            color={Colors.textLight}
-                          />
-                        </Pressable>
                       </View>
+                      <Pressable
+                        style={styles.removeStopBtn}
+                        onPress={() => removeStop(i)}
+                        hitSlop={15}
+                      >
+                        <Ionicons
+                          name="close-circle"
+                          size={22}
+                          color={Colors.error}
+                        />
+                      </Pressable>
                     </View>
                   ))}
 
@@ -415,7 +415,53 @@ export const CreateTripScreen: React.FC = () => {
                   </View>
                 </View>
 
-                <Pressable style={styles.addStop} onPress={addStop}>
+                <View style={styles.roundTripToggle}>
+                  <Pressable
+                    style={[
+                      styles.toggleOption,
+                      !isRoundTrip && styles.toggleOptionActive,
+                    ]}
+                    onPress={() => setIsRoundTrip(false)}
+                  >
+                    <Text
+                      style={[
+                        styles.toggleOptionText,
+                        !isRoundTrip && styles.toggleOptionTextActive,
+                      ]}
+                    >
+                      {t('trips.oneWay')}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={[
+                      styles.toggleOption,
+                      isRoundTrip && styles.toggleOptionActive,
+                    ]}
+                    onPress={() => setIsRoundTrip(true)}
+                  >
+                    <Ionicons
+                      name="repeat-outline"
+                      size={14}
+                      color={isRoundTrip ? Colors.onPrimary : Colors.textLight}
+                    />
+                    <Text
+                      style={[
+                        styles.toggleOptionText,
+                        isRoundTrip && styles.toggleOptionTextActive,
+                      ]}
+                    >
+                      {t('trips.roundTrip')}
+                    </Text>
+                  </Pressable>
+                </View>
+
+                <Pressable
+                style={[
+                  styles.addStop,
+                  { flexDirection: isRTL() === I18nManager.isRTL ? 'row' : 'row-reverse' },
+                ]}
+                onPress={addStop}
+              >
                   <Ionicons
                     name="add-circle"
                     size={18}
@@ -505,51 +551,66 @@ export const CreateTripScreen: React.FC = () => {
                 leadingIcon="checkmark-done-outline"
                 style={{ marginTop: Spacing.md }}
               />
-              <Card>
-                <KeyValueRow
-                  label={t('trips.startPoint')}
-                  value={start.address || '—'}
-                  emphasis="strong"
-                />
-                {stops
-                  .filter((s) => s.address.trim())
-                  .map((s, i) => (
-                    <KeyValueRow
-                      key={i}
-                      label={t('trips.intermediateStop', { n: i + 1 })}
-                      value={s.address}
-                    />
-                  ))}
-                <KeyValueRow
-                  label={t('trips.endPoint')}
-                  value={end.address || '—'}
-                  emphasis="strong"
-                />
-                <View style={styles.reviewDivider} />
-                <KeyValueRow
-                  label={t('trips.review.departureTime')}
+
+              <View style={styles.statsRow}>
+                <StatTile
+                  label={t('trips.departureTime')}
                   value={formatTime(departureTime)}
+                  icon="time-outline"
                 />
-                <KeyValueRow
-                  label={t('trips.review.totalSeats')}
-                  value={`${totalSeats} ${t('common.seats')}`}
+                <StatTile
+                  label={t('common.seats')}
+                  value={totalSeats}
+                  caption={t('common.seats')}
+                  icon="people-outline"
                 />
-                <KeyValueRow
+                <StatTile
                   label={t('trips.review.totalDays')}
-                  value={`${selectedDates.length} ${t('common.passengers').toLowerCase()}`}
+                  value={selectedDates.length}
+                  icon="calendar-outline"
+                  tone="neutral"
                 />
-                <KeyValueRow
-                  label={t('trips.activeFrom')}
-                  value={activeFrom}
+                <StatTile
+                  label={t('trips.isRoundTrip')}
+                  value={isRoundTrip ? t('common.yes') : t('common.no')}
+                  icon="repeat-outline"
+                  tone={isRoundTrip ? 'success' : 'neutral'}
                 />
-                {activeTo ? (
-                  <KeyValueRow
-                    label={t('trips.activeTo')}
-                    value={activeTo}
-                  />
-                ) : null}
+              </View>
+
+              <SectionHeader
+                title={t('trips.tripTimeline')}
+                leadingIcon="git-branch-outline"
+                style={{ marginTop: Spacing.lg }}
+              />
+              <Card>
+                <RouteTimeline
+                  stops={[
+                    {
+                      label: t('trips.startPoint'),
+                      address: start.address,
+                      type: 'start' as const,
+                      meta: formatTime(departureTime),
+                    },
+                    ...stops
+                      .filter((s) => s.address.trim())
+                      .map((s, i) => ({
+                        label: t('trips.intermediateStop', { n: i + 1 }),
+                        address: s.address,
+                        type: 'middle' as const,
+                      })),
+                    {
+                      label: t('trips.endPoint'),
+                      address: end.address,
+                      type: 'end' as const,
+                    },
+                  ]}
+                />
               </Card>
 
+              <Text style={styles.mapSectionTitle}>
+                {t('maps.routePreview')}
+              </Text>
               <View style={styles.mapWrap}>
                 <TripRouteMapView points={mapPoints} height={180} />
               </View>
@@ -561,9 +622,9 @@ export const CreateTripScreen: React.FC = () => {
               <Button
                 title={t('common.previous')}
                 variant="outline"
+                size="sm"
                 onPress={goBack}
                 fullWidth={false}
-                style={{ minWidth: 120 }}
               />
             ) : null}
             <View style={{ flex: 1 }} />
@@ -572,10 +633,9 @@ export const CreateTripScreen: React.FC = () => {
                 title={t('common.next')}
                 onPress={goNext}
                 fullWidth={false}
-                style={{ minWidth: 160 }}
                 rightIcon={
                   <Ionicons
-                    name="arrow-forward"
+                    name={isRTL() ? 'arrow-back' : 'arrow-forward'}
                     size={16}
                     color={Colors.onPrimary}
                   />
@@ -587,7 +647,6 @@ export const CreateTripScreen: React.FC = () => {
                 onPress={handleCreate}
                 loading={submitting}
                 fullWidth={false}
-                style={{ minWidth: 200 }}
                 leftIcon={
                   <Ionicons
                     name="rocket-outline"
@@ -658,7 +717,11 @@ const derivePeriodFromDates = (dates: string[]) => {
 };
 
 const styles = StyleSheet.create({
-  scroll: { padding: Spacing.lg, paddingBottom: Spacing.xxl },
+  scroll: {
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xxl,
+    gap: Spacing.md,
+  },
   stepperWrap: {
     paddingVertical: Spacing.sm,
     marginBottom: Spacing.sm,
@@ -723,7 +786,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginLeft: 5,
   },
-  removeStopBtn: { position: 'absolute', right: 0, top: 4, padding: 4 },
+  removeStopBtn: {
+    padding: Spacing.xs,
+    marginTop: 36,
+    marginRight: -Spacing.xs,
+  },
   addStop: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -734,6 +801,41 @@ const styles = StyleSheet.create({
     marginLeft: 30,
     marginTop: 4,
     borderRadius: BorderRadius.md,
+  },
+  roundTripToggle: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surfaceVariant,
+    padding: 4,
+    borderRadius: BorderRadius.pill,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
+    alignSelf: 'center',
+    width: '80%',
+  },
+  toggleOption: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    borderRadius: BorderRadius.pill,
+    gap: 6,
+  },
+  toggleOptionActive: {
+    backgroundColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  toggleOptionText: {
+    fontSize: 13,
+    fontFamily: FontFamily.bold,
+    color: Colors.textSecondary,
+  },
+  toggleOptionTextActive: {
+    color: Colors.onPrimary,
   },
   addStopText: {
     fontFamily: FontFamily.bold,
@@ -776,17 +878,23 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bold,
   },
   row2: { flexDirection: 'row', gap: Spacing.sm },
+  statsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.xs,
+    marginBottom: Spacing.md,
+  },
   reviewDivider: {
     height: 1,
     backgroundColor: Colors.borderLight,
     marginVertical: Spacing.sm,
   },
   actions: {
-    flexDirection: 'row',
+    flexDirection: isRTL() === I18nManager.isRTL ? 'row' : 'row-reverse',
     alignItems: 'center',
     gap: Spacing.sm,
-    marginTop: Spacing.lg,
-    paddingTop: Spacing.md,
+    marginTop: Spacing.md,
+    paddingTop: Spacing.sm,
     borderTopWidth: 1,
     borderTopColor: Colors.borderLight,
   },

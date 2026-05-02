@@ -5,6 +5,8 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
+  Linking,
+  Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -318,6 +320,12 @@ export const TripDetailsScreen: React.FC = () => {
             tone="neutral"
           />
         ) : null}
+        <StatTile
+          label={t('trips.isRoundTrip')}
+          value={trip.is_round_trip ? t('common.yes') : t('common.no')}
+          icon="repeat-outline"
+          tone={trip.is_round_trip ? 'success' : 'neutral'}
+        />
       </View>
     </Card>
   );
@@ -397,12 +405,22 @@ export const TripDetailsScreen: React.FC = () => {
                 ]}
               >
                 <Avatar name={p.user_name} size={36} />
-                <View style={{ flex: 1 }}>
+                <View style={{ flex: 1, gap: 2 }}>
                   <Text style={styles.passengerName}>{p.user_name || '—'}</Text>
-                  <Text style={styles.passengerMeta}>
-                    {p.pickup_address || '—'}
-                    {p.distance_km ? ` · ${p.distance_km} km` : ''}
-                  </Text>
+                  {isAdmin && p.user_phone ? (
+                    <Pressable
+                      onPress={() => Linking.openURL(`tel:${p.user_phone}`)}
+                      style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                    >
+                      <Ionicons name="call-outline" size={11} color={Colors.primary} />
+                      <Text style={styles.passengerPhone}>{p.user_phone}</Text>
+                    </Pressable>
+                  ) : (
+                    <Text style={styles.passengerMeta}>
+                      {p.pickup_address || '—'}
+                      {p.distance_km ? ` · ${p.distance_km} km` : ''}
+                    </Text>
+                  )}
                 </View>
                 {p.is_admin ? (
                   <Badge
@@ -422,6 +440,30 @@ export const TripDetailsScreen: React.FC = () => {
       </Card>
     </View>
   );
+  
+  const CaptainCard = trip.captain_id ? (
+    <View>
+      <SectionHeader title={t('offers.selectedCaptain')} leadingIcon="car-outline" />
+      <Card>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+          <Avatar name={trip.captain_name} src={trip.captain_avatar} size={44} />
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={styles.heroAdminLabel}>{t('nav.captain')}</Text>
+            <Text style={styles.heroAdminName}>{trip.captain_name || '—'}</Text>
+            {isAdmin && trip.captain_phone ? (
+              <Pressable
+                onPress={() => Linking.openURL(`tel:${trip.captain_phone}`)}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+              >
+                <Ionicons name="call-outline" size={11} color={Colors.primary} />
+                <Text style={styles.passengerPhone}>{trip.captain_phone}</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        </View>
+      </Card>
+    </View>
+  ) : null;
 
   const Actions = (
     <View>
@@ -573,6 +615,7 @@ export const TripDetailsScreen: React.FC = () => {
               {PassengersCard}
             </View>
             <View style={styles.twoColAside}>
+              {CaptainCard}
               {ScheduleCard}
               {Actions}
             </View>
@@ -581,6 +624,7 @@ export const TripDetailsScreen: React.FC = () => {
           <>
             {HeroCard}
             {TimelineCard}
+            {CaptainCard}
             {ScheduleCard}
             {PassengersCard}
             {Actions}
@@ -599,7 +643,11 @@ const shortAddress = (address?: string): string => {
 };
 
 const styles = StyleSheet.create({
-  scroll: { padding: Spacing.lg, paddingBottom: Spacing.xxl },
+  scroll: {
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xxl,
+    gap: Spacing.lg,
+  },
   mapWrap: {
     marginBottom: Spacing.md,
     borderRadius: BorderRadius.lg,
@@ -699,6 +747,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.textLight,
     marginTop: 2,
+  },
+  passengerPhone: {
+    fontSize: 13,
+    color: Colors.primary,
+    fontFamily: FontFamily.semiBold,
   },
   priceText: {
     fontSize: 14,

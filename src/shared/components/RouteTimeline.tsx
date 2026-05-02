@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, I18nManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, BorderRadius, Spacing, FontFamily } from '@core/theme';
+import { isRTL } from '@core/i18n';
 
 export interface RouteStop {
   label: string;
@@ -60,7 +61,7 @@ export const RouteTimeline: React.FC<RouteTimelineProps> = ({ stops }) => {
 const styles = StyleSheet.create({
   wrapper: { gap: 0 },
   row: {
-    flexDirection: 'row',
+    flexDirection: isRTL() === I18nManager.isRTL ? 'row' : 'row-reverse',
     alignItems: 'flex-start',
     gap: Spacing.md,
   },
@@ -83,9 +84,9 @@ const styles = StyleSheet.create({
     width: 2,
     backgroundColor: Colors.borderLight,
     marginVertical: 2,
-    minHeight: 24,
+    minHeight: 32,
   },
-  contentCol: { flex: 1, paddingBottom: Spacing.md },
+  contentCol: { flex: 1, paddingBottom: Spacing.xl },
   label: {
     fontSize: 12,
     color: Colors.textLight,

@@ -8,8 +8,11 @@ import {
   ViewStyle,
   TextStyle,
   StyleProp,
+  View,
+  I18nManager,
 } from 'react-native';
 import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@core/theme';
+import { isRTL } from '@core/i18n';
 
 type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 type Size = 'sm' | 'md' | 'lg';
@@ -41,6 +44,7 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   const containerStyle = [
     styles.base,
+    { flexDirection: isRTL() === I18nManager.isRTL ? 'row' : 'row-reverse' },
     styles[`${variant}Container`],
     styles[`${size}Container`],
     fullWidth && styles.fullWidth,
@@ -68,9 +72,13 @@ export const Button: React.FC<ButtonProps> = ({
         />
       ) : (
         <>
-          {leftIcon}
+          {leftIcon && (
+            <View style={isRTL() && styles.rtlFlip}>{leftIcon}</View>
+          )}
           <Text style={labelStyle}>{title}</Text>
-          {rightIcon}
+          {rightIcon && (
+            <View style={isRTL() && styles.rtlFlip}>{rightIcon}</View>
+          )}
         </>
       )}
     </TouchableOpacity>
@@ -83,7 +91,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.xs,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.pill,
+  },
+  rtlFlip: {
+    transform: [{ scaleX: -1 }],
   },
   fullWidth: { alignSelf: 'stretch' },
   disabled: { opacity: 0.55 },
@@ -91,13 +102,13 @@ const styles = StyleSheet.create({
 
   primaryContainer: {
     backgroundColor: Colors.primary,
-    ...Shadows.subtle,
+    ...Shadows.card,
   },
   primaryText: { color: Colors.onPrimary },
 
   secondaryContainer: {
     backgroundColor: Colors.secondary,
-    ...Shadows.subtle,
+    ...Shadows.card,
   },
   secondaryText: { color: Colors.onSecondary },
 
@@ -114,10 +125,10 @@ const styles = StyleSheet.create({
   dangerContainer: { backgroundColor: Colors.error },
   dangerText: { color: Colors.onError },
 
-  smContainer: { paddingVertical: 8, paddingHorizontal: Spacing.md, minHeight: 36 },
-  smText: { fontSize: 14 },
-  mdContainer: { paddingVertical: 14, paddingHorizontal: Spacing.lg, minHeight: 48 },
-  mdText: { fontSize: 16 },
-  lgContainer: { paddingVertical: 18, paddingHorizontal: Spacing.lg, minHeight: 56 },
-  lgText: { fontSize: 17 },
+  smContainer: { paddingVertical: 5, paddingHorizontal: Spacing.md, minHeight: 30 },
+  smText: { fontSize: 12 },
+  mdContainer: { paddingVertical: 8, paddingHorizontal: Spacing.lg, minHeight: 38 },
+  mdText: { fontSize: 13 },
+  lgContainer: { paddingVertical: 12, paddingHorizontal: Spacing.lg, minHeight: 46 },
+  lgText: { fontSize: 15 },
 });

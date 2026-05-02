@@ -1,7 +1,8 @@
 import React from 'react';
-import { StyleSheet, Text, View, StyleProp, ViewStyle } from 'react-native';
+import { StyleSheet, Text, View, StyleProp, ViewStyle, I18nManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BorderRadius, Colors, FontFamily, Spacing } from '@core/theme';
+import { isRTL } from '@core/i18n';
 
 type Tone = 'primary' | 'secondary' | 'warning' | 'neutral' | 'success';
 
@@ -71,13 +72,13 @@ const styles = StyleSheet.create({
   tile: {
     flex: 1,
     minWidth: 130,
-    padding: Spacing.md,
+    padding: Spacing.sm,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     borderColor: Colors.borderLight,
   },
   row: {
-    flexDirection: 'row',
+    flexDirection: isRTL() === I18nManager.isRTL ? 'row' : 'row-reverse',
     alignItems: 'center',
     gap: 6,
   },
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   value: {
-    fontSize: 22,
+    fontSize: 18,
     fontFamily: FontFamily.bold,
     marginTop: Spacing.xs,
     letterSpacing: -0.3,

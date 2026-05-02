@@ -9,7 +9,9 @@ import {
   I18nManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Colors, Spacing, FontFamily } from '@core/theme';
+import { isRTL } from '@core/i18n';
 
 export type HeaderVariant = 'default' | 'branded' | 'minimal';
 
@@ -33,6 +35,7 @@ export const Header: React.FC<HeaderProps> = ({
   variant = 'default',
   style,
 }) => {
+  useTranslation(); // Force re-render on language change
   if (variant === 'branded') {
     return (
       <View
@@ -40,16 +43,13 @@ export const Header: React.FC<HeaderProps> = ({
           styles.container,
           !transparent && styles.surface,
           styles.brandRow,
+          { flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row' },
           style,
         ]}
       >
         {onBack ? (
           <TouchableOpacity onPress={onBack} hitSlop={8} style={styles.backBtn}>
-            <Ionicons
-              name={I18nManager.isRTL ? 'chevron-forward' : 'chevron-back'}
-              size={22}
-              color={Colors.text}
-            />
+            <Ionicons name="arrow-forward" size={22} color={Colors.text} />
           </TouchableOpacity>
         ) : (
           <View style={styles.spacer} />
@@ -73,16 +73,13 @@ export const Header: React.FC<HeaderProps> = ({
           styles.container,
           !transparent && styles.surface,
           styles.minimalRow,
+          { flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row' },
           style,
         ]}
       >
         {onBack ? (
           <TouchableOpacity onPress={onBack} hitSlop={8} style={styles.backBtnMinimal}>
-            <Ionicons
-              name={I18nManager.isRTL ? 'chevron-forward' : 'chevron-back'}
-              size={20}
-              color={Colors.text}
-            />
+            <Ionicons name="arrow-forward" size={20} color={Colors.text} />
           </TouchableOpacity>
         ) : (
           <View style={styles.spacer} />
@@ -100,16 +97,13 @@ export const Header: React.FC<HeaderProps> = ({
       style={[
         styles.container,
         !transparent && styles.surface,
+        { flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row' },
         style,
       ]}
     >
       {onBack ? (
         <TouchableOpacity onPress={onBack} hitSlop={8} style={styles.backBtn}>
-          <Ionicons
-            name={I18nManager.isRTL ? 'chevron-forward' : 'chevron-back'}
-            size={22}
-            color={Colors.text}
-          />
+          <Ionicons name="arrow-forward" size={22} color={Colors.text} />
         </TouchableOpacity>
       ) : (
         <View style={styles.spacer} />
@@ -130,7 +124,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
+    paddingVertical: 6,
     gap: Spacing.sm,
   },
   brandRow: {
@@ -139,7 +133,7 @@ const styles = StyleSheet.create({
   },
   brandCenter: { flex: 1, alignItems: 'center' },
   brandTitle: {
-    fontSize: 22,
+    fontSize: 20,
     color: '#312E81',
     fontFamily: FontFamily.extraBold,
     letterSpacing: 1.2,
@@ -157,14 +151,14 @@ const styles = StyleSheet.create({
   },
   minimalTitleWrap: { flex: 1 },
   minimalTitle: {
-    fontSize: 15,
+    fontSize: 14,
     color: Colors.text,
     fontFamily: FontFamily.bold,
   },
   backBtnMinimal: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -174,9 +168,9 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.borderLight,
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.surface1,
@@ -185,7 +179,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center' },
   right: { minWidth: 40, alignItems: 'flex-end' },
   title: {
-    fontSize: 17,
+    fontSize: 15,
     color: Colors.text,
     fontFamily: FontFamily.bold,
   },

@@ -33,10 +33,11 @@ const tripRelationsQuery = `
   *,
   stops:trip_stops(*),
   schedule_days:trip_schedule_days(*),
-  passengers:trip_passengers(*, user:users(name, avatar_url)),
+  passengers:trip_passengers(*, user:users(name, avatar_url, phone)),
   pricing:trip_passenger_pricing(*),
   attendance:trip_attendance(*),
-  offers:captain_offers(*)
+  offers:captain_offers(*),
+  captain:users!captain_id(name, avatar_url, phone)
 `;
 
 const mapDbTripToModel = (data: any): Trip => {
@@ -48,8 +49,12 @@ const mapDbTripToModel = (data: any): Trip => {
       ...p,
       user_name: p.user?.name,
       user_avatar: p.user?.avatar_url,
+      user_phone: p.user?.phone,
       user: undefined,
     })),
+    captain_name: data.captain?.name || data.captain_name,
+    captain_avatar: data.captain?.avatar_url,
+    captain_phone: data.captain?.phone,
     pricing: data.pricing || [],
     attendance: data.attendance || [],
     offers: data.offers || [],
@@ -176,6 +181,7 @@ export const tripsRepository = {
         active_to: input.active_to,
         departure_time: input.departure_time,
         total_seats: input.total_seats,
+        is_round_trip: input.is_round_trip,
         status: TripStatus.Open,
         base_price_per_km: input.base_price_per_km,
         distance_km: input.distance_km,
@@ -208,6 +214,7 @@ export const tripsRepository = {
         active_to: input.active_to,
         departure_time: input.departure_time,
         total_seats: input.total_seats,
+        is_round_trip: input.is_round_trip,
         base_price_per_km: input.base_price_per_km,
         distance_km: input.distance_km,
         notes: input.notes,

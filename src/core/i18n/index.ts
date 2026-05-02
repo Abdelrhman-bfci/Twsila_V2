@@ -21,10 +21,10 @@ const detectInitialLanguage = async (): Promise<AppLanguage> => {
     const stored = await AsyncStorage.getItem(LANGUAGE_KEY);
     if (stored === 'en' || stored === 'ar') return stored;
   } catch {
-    // ignore — fall back to device locale
+    // ignore
   }
-  const device = Localization.getLocales()?.[0]?.languageCode || 'ar';
-  return device === 'en' ? 'en' : 'ar';
+  // Default to Arabic regardless of device locale if no user preference is stored
+  return 'ar';
 };
 
 export const initI18n = async (): Promise<AppLanguage> => {

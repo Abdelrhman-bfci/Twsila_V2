@@ -23,6 +23,7 @@ export interface TripPassenger {
   user_id: string;
   user_name?: string;
   user_avatar?: string;
+  user_phone?: string;
   pickup_address?: string;
   pickup_lat?: number;
   pickup_lng?: number;
@@ -60,6 +61,7 @@ export interface CaptainOffer {
   captain_id: string;
   captain_name?: string;
   captain_avatar?: string;
+  captain_phone?: string;
   captain_rating?: number;
   vehicle_label?: string;
   vehicle_seats?: number;
@@ -86,9 +88,12 @@ export interface Trip {
   active_to?: string;
   departure_time: string;
   total_seats: number;
+  is_round_trip: boolean;
   status: TripStatusValue;
   captain_id?: string;
   captain_name?: string;
+  captain_avatar?: string;
+  captain_phone?: string;
   base_price_per_km?: number;
   distance_km?: number;
   notes?: string;
@@ -124,6 +129,7 @@ export interface CreateTripInput {
   active_to?: string;
   departure_time: string;
   total_seats: number;
+  is_round_trip: boolean;
   base_price_per_km?: number;
   distance_km?: number;
   notes?: string;
