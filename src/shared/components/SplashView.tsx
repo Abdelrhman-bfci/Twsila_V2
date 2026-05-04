@@ -71,8 +71,8 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   logo: {
-    width: 180,
-    height: 180,
+    width: 175,
+    height: 175,
   },
   brand: {
     color: Colors.white,

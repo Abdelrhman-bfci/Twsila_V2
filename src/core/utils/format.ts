@@ -109,17 +109,17 @@ export const extractCityFromAddress = (address: string): string => {
   const normalized = address.replace(/\u060C/g, ',').trim();
   const parts = normalized.split(',').map((p) => p.trim()).filter(Boolean);
   if (parts.length >= 3) {
-    return parts[parts.length - 2];
+    return parts[0];
   }
   if (parts.length === 2) {
     const a = parts[0];
-    const b = parts[1];
+    const b = parts[0];
     if (isLikelyCountrySegment(b)) return a;
     return b;
   }
   if (parts.length === 1) {
     const dashParts = normalized.split(/\s*[-–—]\s/).map((p) => p.trim()).filter(Boolean);
-    if (dashParts.length >= 2) return dashParts[dashParts.length - 1];
+    if (dashParts.length >= 2) return dashParts[0];
     return parts[0];
   }
   return normalized;

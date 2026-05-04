@@ -266,8 +266,8 @@ export const TripDetailsScreen: React.FC = () => {
         trip.status === TripStatus.Assigned
           ? 'success'
           : trip.status === TripStatus.Bidding
-          ? 'warning'
-          : 'primary'
+            ? 'warning'
+            : 'primary'
       }
       icon={
         trip.status === TripStatus.Assigned ? 'checkmark-circle' : undefined
@@ -306,8 +306,8 @@ export const TripDetailsScreen: React.FC = () => {
             seatsLeft === 0
               ? t('trips.tripFull')
               : seatsLeft === 1
-              ? t('trips.seatLeft')
-              : t('trips.seatsLeft', { count: seatsLeft })
+                ? t('trips.seatLeft')
+                : t('trips.seatsLeft', { count: seatsLeft })
           }
           icon="people-outline"
           tone={seatsLeft === 0 ? 'warning' : 'primary'}
@@ -442,13 +442,13 @@ export const TripDetailsScreen: React.FC = () => {
       </Card>
     </View>
   );
-  
+
   const CaptainCard = trip.captain_id ? (
     <View>
       <SectionHeader title={t('offers.selectedCaptain')} leadingIcon="car-outline" />
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
-          <Avatar name={trip.captain_name} src={trip.captain_avatar} size={44} />
+          <Avatar name={trip.captain_name} size={44} />
           <View style={{ flex: 1, gap: 2 }}>
             <Text style={styles.heroAdminLabel}>{t('nav.captain')}</Text>
             <Text style={styles.heroAdminName}>{trip.captain_name || '—'}</Text>
