@@ -46,7 +46,9 @@
     "arabic": "العربية",
     "today": "Today",
     "tomorrow": "Tomorrow",
-    "more": "More"
+    "more": "More",
+    "none": "None",
+    "ongoing": "Ongoing"
   },
   "errors": {
     "network": "We couldn't reach Twsila. Check your connection and try again.",
@@ -145,6 +147,9 @@
     "noResultsSubtitle": "Take control of your commute. Create a trip request and become a Trip Admin for your route.",
     "createNewTripRequest": "Create a new trip request",
     "createTrip": "Create Trip",
+    "editTrip": "Edit Trip",
+    "updateTrip": "Update Trip",
+    "youAreAdmin": "You are the trip admin",
     "tripDetails": "Trip Details",
     "tripTimeline": "Trip timeline",
     "routeOverview": "Route overview",
@@ -193,7 +198,7 @@
     "copyLink": "Copy link",
     "shareToSocial": "Share to social media",
     "linkCopied": "Link copied to clipboard",
-    "shareMessage": "🚌 Trip details\n📍 From: {{from}}\n🏁 To: {{to}}\n🔁 Trip type: {{tripType}}\n💺 Seats: {{seats}}\n⏰ Departure: {{time}}\n📅 Days: {{days}}\n\nOpen the trip: {{url}}",
+    "shareMessage": "🚌 Trip details\n📍 From: {{from}}\n🏁 To: {{to}}\n🚉 Stops: {{stops}}\n🔁 Trip type: {{tripType}}\n💺 Seats: {{seats}}\n⏰ Departure: {{time}}\n📅 Days: {{days}}\n🗓️ Valid: {{startDate}} to {{endDate}}\n\nOpen the trip: {{url}}",
     "createSteps": {
       "route": "Route",
       "schedule": "Schedule",
@@ -269,7 +274,9 @@
     "weekOverview": "Week overview",
     "actionSuccess": "Attendance updated",
     "summarySubtitle": "{{confirmed}} of {{total}} scheduled days confirmed",
-    "selectDay": "Select a day to manage your attendance"
+    "selectDay": "Select a day to manage your attendance",
+    "totalTripPrice": "Total trip price",
+    "whoIsRiding": "Who is riding?"
   },
   "pricing": {
     "title": "Passenger pricing",
@@ -338,7 +345,9 @@
     "lifetimeEarnings": "lifetime earnings",
     "submittedOn": "Submitted {{date}}",
     "awaitingReview": "Awaiting review",
-    "bidWon": "You won this trip"
+    "bidWon": "You won this trip",
+    "editBid": "Edit bid",
+    "youAreAssigned": "You are assigned as the captain for this trip"
   },
   "offers": {
     "bidsReceived": "Bids received",

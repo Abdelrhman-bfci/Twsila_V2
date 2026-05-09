@@ -74,6 +74,7 @@ export const CreateTripScreen: React.FC = () => {
   const layout = useResponsiveLayout();
 
   const [stepIndex, setStepIndex] = useState(0);
+  const [loadingInitial, setLoadingInitial] = useState(!!route.params?.tripId);
 
   const [start, setStart] = useState<RoutePoint>({
     address: route.params?.startQuery || '',
@@ -90,6 +91,44 @@ export const CreateTripScreen: React.FC = () => {
   );
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    const tripId = route.params?.tripId;
+    if (tripId) {
+      const loadTrip = async () => {
+        try {
+          const trip = await tripsRepository.getTrip(tripId);
+          if (trip) {
+            setStart({ address: trip.start_address, lat: trip.start_lat, lng: trip.start_lng });
+            setEnd({ address: trip.end_address, lat: trip.end_lat, lng: trip.end_lng });
+            setStops(trip.stops.map(s => ({ address: s.address, lat: s.lat, lng: s.lng })));
+            setDepartureTime(trip.departure_time);
+            setTotalSeats(String(trip.total_seats));
+            setIsRoundTrip(trip.is_round_trip);
+            
+            // Generate dates between activeFrom and activeTo that match scheduleDays
+            const dates: string[] = [];
+            const cursor = new Date(trip.active_from);
+            const endLimit = trip.active_to ? new Date(trip.active_to) : new Date(cursor.getFullYear(), cursor.getMonth() + 2, 0);
+            const daysSet = new Set(trip.schedule_days);
+            
+            while (cursor <= endLimit) {
+              if (daysSet.has(cursor.getDay())) {
+                dates.push(toIso(cursor));
+              }
+              cursor.setDate(cursor.getDate() + 1);
+            }
+            setSelectedDates(dates);
+          }
+        } catch (e) {
+          setErrorMsg(t('errors.loadFailed'));
+        } finally {
+          setLoadingInitial(false);
+        }
+      };
+      loadTrip();
+    }
+  }, [route.params?.tripId, t]);
 
   const setStop = (idx: number, p: RoutePoint) =>
     setStops((prev) => prev.map((s, i) => (i === idx ? p : s)));
@@ -202,7 +241,7 @@ export const CreateTripScreen: React.FC = () => {
     }
   };
 
-  const handleCreate = async () => {
+  const handleSubmit = async () => {
     if (!user) return;
     const err = validateRoute() || validateSchedule();
     if (err) {
@@ -224,8 +263,7 @@ export const CreateTripScreen: React.FC = () => {
         stopResolved.push(s);
       }
 
-      const trip = await tripsRepository.createTrip({
-        admin_id: user.id,
+      const tripData = {
         name: `${formatCityName(startP.address)} → ${formatCityName(endP.address)}`,
         start_address: startP.address.trim(),
         start_lat: startP.lat,
@@ -244,7 +282,18 @@ export const CreateTripScreen: React.FC = () => {
         departure_time: departureTime,
         total_seats: parseInt(totalSeats, 10) || DEFAULT_TRIP_SEATS,
         is_round_trip: isRoundTrip,
-      });
+      };
+
+      let trip;
+      if (route.params?.tripId) {
+        trip = await tripsRepository.updateTrip(route.params.tripId, tripData);
+      } else {
+        trip = await tripsRepository.createTrip({
+          ...tripData,
+          admin_id: user.id,
+        });
+      }
+      
       nav.replace('TripDetails', { tripId: trip.id });
     } catch (e) {
       setErrorMsg(e instanceof Error ? e.message : t('errors.actionFailed'));
@@ -268,15 +317,20 @@ export const CreateTripScreen: React.FC = () => {
   return (
     <Screen background={Colors.surface}>
       <Header
-        title={steps[stepIndex].title}
+        title={route.params?.tripId ? t('trips.editTrip') : steps[stepIndex].title}
         subtitle={headerSubtitle}
         onBack={goBack}
       />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
-      >
-        <ScrollView
+      {loadingInitial ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ fontFamily: FontFamily.medium, color: Colors.textSecondary }}>{t('common.loading')}</Text>
+        </View>
+      ) : (
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1 }}
+        >
+          <ScrollView
           contentContainerStyle={[
             styles.scroll,
             layout.isWide && {
@@ -659,13 +713,13 @@ export const CreateTripScreen: React.FC = () => {
               />
             ) : (
               <Button
-                title={t('trips.createTripCta')}
-                onPress={handleCreate}
+                title={route.params?.tripId ? t('trips.updateTrip') : t('trips.createTripCta')}
+                onPress={handleSubmit}
                 loading={submitting}
                 fullWidth={false}
                 leftIcon={
                   <Ionicons
-                    name="rocket-outline"
+                    name={route.params?.tripId ? "save-outline" : "rocket-outline"}
                     size={16}
                     color={Colors.onPrimary}
                   />
@@ -675,6 +729,7 @@ export const CreateTripScreen: React.FC = () => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      )}
     </Screen>
   );
 };

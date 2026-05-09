@@ -343,7 +343,6 @@ export const OffersScreen: React.FC = () => {
         {pending.length > 0 ? (
           <SectionHeader
             title={t('offers.bidsReceived')}
-            caption={t('offers.newOffers', { count: pending.length })}
             leadingIcon="hammer-outline"
             style={{ marginTop: Spacing.md }}
           />

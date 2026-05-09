@@ -43,16 +43,22 @@ import {
   BorderRadius,
   Shadows,
 } from '@core/theme';
-import { DAYS_OF_WEEK, TripStatus } from '@core/constants';
+import { DAYS_OF_WEEK, TripStatus, UserRole, OfferStatus } from '@core/constants';
 import { formatTime, formatCurrency, formatCityName } from '@core/utils/format';
 
 import { useAuth } from '@features/auth/presentation/context/AuthContext';
 import { tripsRepository } from '../../data/tripsRepository';
 import { Trip } from '../../domain/models/Trip';
-import { PassengerExploreStackParamList } from '@navigation/types';
+import {
+  PassengerExploreStackParamList,
+  CaptainMarketplaceStackParamList,
+} from '@navigation/types';
 
-type Nav = NativeStackNavigationProp<PassengerExploreStackParamList, 'TripDetails'>;
-type Rt = RouteProp<PassengerExploreStackParamList, 'TripDetails'>;
+type CombinedParamList = PassengerExploreStackParamList &
+  CaptainMarketplaceStackParamList;
+
+type Nav = NativeStackNavigationProp<CombinedParamList, 'TripDetails'>;
+type Rt = RouteProp<CombinedParamList, 'TripDetails'>;
 
 type Status = 'loading' | 'success' | 'error' | 'notFound';
 
@@ -214,6 +220,12 @@ export const TripDetailsScreen: React.FC = () => {
 
   const isAdmin = trip.admin_id === user?.id;
   const isMember = passengers.some((p) => p.user_id === user?.id);
+  const isCaptain = user?.role === UserRole.Captain;
+  const isAssignedCaptain = trip.captain_id === user?.id;
+  const myOffer = trip.offers?.find(
+    (o) => o.captain_id === user?.id && o.status === OfferStatus.Pending
+  );
+
   const seatsLeft = Math.max(0, trip.total_seats - passengers.length);
   const schedDays = trip.schedule_days ?? [];
 
@@ -407,7 +419,7 @@ export const TripDetailsScreen: React.FC = () => {
                 <Avatar name={p.user_name} size={36} />
                 <View style={{ flex: 1, gap: 2 }}>
                   <Text style={styles.passengerName}>{p.user_name || '—'}</Text>
-                  {isAdmin && p.user_phone ? (
+                  {(isAdmin || isAssignedCaptain) && p.user_phone ? (
                     <Pressable
                       onPress={() => Linking.openURL(`tel:${p.user_phone}`)}
                       style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
@@ -430,8 +442,6 @@ export const TripDetailsScreen: React.FC = () => {
                     tone="primary"
                     size="sm"
                   />
-                ) : price ? (
-                  <Text style={styles.priceText}>{formatCurrency(price)}</Text>
                 ) : (
                   <Badge label="—" tone="neutral" size="sm" />
                 )}
@@ -472,15 +482,6 @@ export const TripDetailsScreen: React.FC = () => {
       {isAdmin ? (
         <View style={styles.adminActions}>
           <Button
-            title={t('pricing.title')}
-            variant="outline"
-            onPress={() => nav.navigate('Pricing', { tripId: trip.id })}
-            leftIcon={
-              <Ionicons name="cash-outline" size={18} color={Colors.primary} />
-            }
-          />
-          <View style={{ height: Spacing.sm }} />
-          <Button
             title={t('offers.bidsReceived')}
             onPress={() => nav.navigate('Offers', { tripId: trip.id })}
             leftIcon={
@@ -490,8 +491,11 @@ export const TripDetailsScreen: React.FC = () => {
           <View style={{ height: Spacing.sm }} />
           <Button
             title={t('attendance.title')}
-            variant="ghost"
+            variant="outline"
             onPress={() => nav.navigate('Attendance', { tripId: trip.id })}
+            leftIcon={
+              <Ionicons name="calendar-outline" size={18} color={Colors.primary} />
+            }
           />
         </View>
       ) : null}
@@ -515,7 +519,7 @@ export const TripDetailsScreen: React.FC = () => {
         </View>
       ) : null}
 
-      {!isMember ? (
+      {!isMember && !isCaptain ? (
         <View style={styles.adminActions}>
           <Button
             title={seatsLeft > 0 ? t('trips.joinTrip') : t('trips.tripFull')}
@@ -530,6 +534,56 @@ export const TripDetailsScreen: React.FC = () => {
               />
             }
           />
+        </View>
+      ) : null}
+
+      {isCaptain ? (
+        <View style={styles.adminActions}>
+          {isAssignedCaptain ? (
+            <>
+              <Banner
+                tone="success"
+                title={t('offers.status.accepted')}
+                description={t('captain.youAreAssigned')}
+                icon="checkmark-circle"
+              />
+              <View style={{ height: Spacing.sm }} />
+              <Button
+                title={t('attendance.title')}
+                variant="outline"
+                onPress={() => nav.navigate('Attendance', { tripId: trip.id })}
+                leftIcon={
+                  <Ionicons name="calendar-outline" size={18} color={Colors.primary} />
+                }
+              />
+            </>
+          ) : myOffer ? (
+            <View style={{ gap: Spacing.sm }}>
+              <Badge
+                label={t('captain.bidPending')}
+                tone="warning"
+                icon="hourglass-outline"
+                style={{ alignSelf: 'flex-start' }}
+              />
+              <Button
+                title={t('captain.editBid')}
+                variant="outline"
+                onPress={() => nav.navigate('SubmitBid', { tripId: trip.id })}
+                leftIcon={
+                  <Ionicons name="create-outline" size={18} color={Colors.primary} />
+                }
+              />
+            </View>
+          ) : (
+            <Button
+              title={t('captain.submitBid')}
+              onPress={() => nav.navigate('SubmitBid', { tripId: trip.id })}
+              disabled={trip.status === TripStatus.Assigned}
+              leftIcon={
+                <Ionicons name="hammer-outline" size={18} color={Colors.onPrimary} />
+              }
+            />
+          )}
         </View>
       ) : null}
 
@@ -557,7 +611,27 @@ export const TripDetailsScreen: React.FC = () => {
           trip.end_address
         )}`}
         onBack={() => nav.goBack()}
-        right={StatusBadge}
+        right={
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.xs }}>
+            {trip.admin_id === user?.id && (
+              <Pressable
+                onPress={() => nav.navigate('CreateTrip', { tripId: trip.id })}
+                hitSlop={10}
+                style={({ pressed }) => ({
+                  width: 34,
+                  height: 34,
+                  borderRadius: 17,
+                  backgroundColor: pressed ? Colors.surface2 : Colors.surface1,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                })}
+              >
+                <Ionicons name="create-outline" size={20} color={Colors.primary} />
+              </Pressable>
+            )}
+            {StatusBadge}
+          </View>
+        }
       />
       <ScrollView
         contentContainerStyle={[

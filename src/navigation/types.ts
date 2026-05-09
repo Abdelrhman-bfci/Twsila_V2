@@ -14,7 +14,7 @@ export type PassengerTabParamList = {
 export type PassengerExploreStackParamList = {
   Search: undefined;
   SearchResults: { startQuery?: string; endQuery?: string };
-  CreateTrip: { startQuery?: string; endQuery?: string };
+  CreateTrip: { startQuery?: string; endQuery?: string; tripId?: string };
   TripDetails: { tripId: string };
   Attendance: { tripId: string };
   Pricing: { tripId: string };

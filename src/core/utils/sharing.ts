@@ -12,13 +12,23 @@ export const shareTrip = async (trip: Trip, t: TFunction) => {
 
   const tripType = t(trip.is_round_trip ? 'trips.roundTrip' : 'trips.oneWay');
 
+  const stopsStr = (trip.stops || [])
+    .map((s) => formatCityName(s.address))
+    .join(' → ') || t('common.none');
+
+  const startDate = trip.active_from;
+  const endDate = trip.active_to || t('common.ongoing');
+
   const shareMessage = t('trips.shareMessage', {
     from: formatCityName(trip.start_address),
     to: formatCityName(trip.end_address),
+    stops: stopsStr,
     time: formatTime(trip.departure_time),
     days: daysStr,
     tripType,
     seats: String(trip.total_seats),
+    startDate,
+    endDate,
     url: tripUrl,
   });
 

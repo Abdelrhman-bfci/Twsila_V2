@@ -46,7 +46,9 @@
     "arabic": "العربية",
     "today": "اليوم",
     "tomorrow": "غداً",
-    "more": "المزيد"
+    "more": "المزيد",
+    "none": "لا يوجد",
+    "ongoing": "مستمر"
   },
   "errors": {
     "network": "تعذر الاتصال بتوصيلة. تأكد من شبكتك ثم حاول مجدداً.",
@@ -193,7 +195,7 @@
     "copyLink": "نسخ الرابط",
     "shareToSocial": "مشاركة عبر وسائل التواصل",
     "linkCopied": "تم نسخ الرابط",
-    "shareMessage": "🚌 تفاصيل الرحلة\n📍 من: {{from}}\n🏁 إلى: {{to}}\n🔁 نوع الرحلة: {{tripType}}\n💺 المقاعد: {{seats}}\n⏰ وقت الانطلاق: {{time}}\n📅 الأيام: {{days}}\n\nافتح الرحلة: {{url}}",
+    "shareMessage": "🚌 تفاصيل الرحلة\n📍 من: {{from}}\n🏁 إلى: {{to}}\n🚉 المحطات: {{stops}}\n🔁 نوع الرحلة: {{tripType}}\n💺 المقاعد: {{seats}}\n⏰ وقت الانطلاق: {{time}}\n📅 الأيام: {{days}}\n🗓️ الصلاحية: من {{startDate}} إلى {{endDate}}\n\nافتح الرحلة: {{url}}",
     "createSteps": {
       "route": "المسار",
       "schedule": "الجدول",

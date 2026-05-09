@@ -125,7 +125,7 @@ const tripRelationsQuery = `
   passengers:trip_passengers(*, user:users(name, avatar_url, phone)),
   pricing:trip_passenger_pricing(*),
   attendance:trip_attendance(*),
-  offers:captain_offers(*),
+  offers:captain_offers(*, captain:users!captain_id(name, avatar_url, phone, rating)),
   captain:users!captain_id(name, avatar_url, phone)
 `;
 
@@ -146,7 +146,14 @@ const mapDbTripToModel = (data: any): Trip => {
     captain_phone: data.captain?.phone,
     pricing: data.pricing || [],
     attendance: data.attendance || [],
-    offers: data.offers || [],
+    offers: (data.offers || []).map((o: any) => ({
+      ...o,
+      captain_name: o.captain?.name,
+      captain_avatar: o.captain?.avatar_url,
+      captain_phone: o.captain?.phone,
+      captain_rating: o.captain?.rating,
+      captain: undefined,
+    })),
   } as Trip;
 };
 
@@ -629,5 +636,100 @@ export const tripsRepository = {
       .select('*')
       .eq('captain_id', captainId);
     return (data || []) as unknown as CaptainOffer[];
+  },
+
+  async updateTrip(tripId: string, input: Partial<CreateTripInput>): Promise<Trip> {
+    if (isDevMode()) {
+      const t = dummyTrips.find((x) => x.id === tripId);
+      if (!t) throw new Error('Trip not found');
+      
+      if (input.name) t.name = input.name;
+      if (input.start_address) t.start_address = input.start_address;
+      if (input.start_lat !== undefined) t.start_lat = input.start_lat;
+      if (input.start_lng !== undefined) t.start_lng = input.start_lng;
+      if (input.end_address) t.end_address = input.end_address;
+      if (input.end_lat !== undefined) t.end_lat = input.end_lat;
+      if (input.end_lng !== undefined) t.end_lng = input.end_lng;
+      if (input.active_from) t.active_from = input.active_from;
+      if (input.active_to !== undefined) t.active_to = input.active_to;
+      if (input.departure_time) t.departure_time = input.departure_time;
+      if (input.total_seats !== undefined) t.total_seats = input.total_seats;
+      if (input.is_round_trip !== undefined) t.is_round_trip = input.is_round_trip;
+      
+      if (input.stops) {
+        t.stops = input.stops.map((s, i) => ({
+          id: `stop-${tripId}-${Date.now()}-${i}`,
+          trip_id: tripId,
+          stop_order: i,
+          address: s.address,
+          lat: s.lat,
+          lng: s.lng,
+          distance_from_start_km: s.distance_from_start_km,
+        }));
+      }
+      
+      if (input.schedule_days) {
+        t.schedule_days = [...input.schedule_days].sort();
+      }
+      
+      t.updated_at = new Date().toISOString();
+      return cloneTrip(t);
+    }
+
+    // Update main trip row
+    const { error: tripError } = await supabase
+      .from('trips')
+      .update({
+        name: input.name,
+        start_address: input.start_address,
+        start_lat: input.start_lat,
+        start_lng: input.start_lng,
+        end_address: input.end_address,
+        end_lat: input.end_lat,
+        end_lng: input.end_lng,
+        active_from: input.active_from,
+        active_to: input.active_to,
+        departure_time: input.departure_time,
+        total_seats: input.total_seats,
+        is_round_trip: input.is_round_trip,
+        base_price_per_km: input.base_price_per_km,
+        distance_km: input.distance_km,
+        notes: input.notes,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', tripId);
+    
+    if (tripError) throw tripError;
+
+    // Update stops: delete and re-insert is simplest for maintenance
+    if (input.stops) {
+      await supabase.from('trip_stops').delete().eq('trip_id', tripId);
+      if (input.stops.length) {
+        await supabase.from('trip_stops').insert(
+          input.stops.map((s, i) => ({
+            trip_id: tripId,
+            stop_order: i,
+            address: s.address,
+            lat: s.lat,
+            lng: s.lng,
+            distance_from_start_km: s.distance_from_start_km,
+          }))
+        );
+      }
+    }
+
+    // Update schedule days
+    if (input.schedule_days) {
+      await supabase.from('trip_schedule_days').delete().eq('trip_id', tripId);
+      if (input.schedule_days.length) {
+        await supabase.from('trip_schedule_days').insert(
+          input.schedule_days.map((d) => ({ trip_id: tripId, day_of_week: d }))
+        );
+      }
+    }
+
+    const fresh = await tripsRepository.getTrip(tripId);
+    if (!fresh) throw new Error('Trip updated but could not be fetched');
+    return fresh;
   },
 };

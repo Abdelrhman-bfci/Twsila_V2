@@ -36,7 +36,6 @@ import {
   Shadows,
 } from '@core/theme';
 import { useResponsiveLayout } from '@shared/hooks';
-import { AttendanceStatus } from '@core/constants';
 import {
   formatCurrency,
   formatLongDate,
@@ -44,6 +43,7 @@ import {
   toIsoDate,
   formatCityName,
 } from '@core/utils/format';
+import { OfferStatus, UserRole, AttendanceStatus } from '@core/constants';
 
 import { useAuth } from '@features/auth/presentation/context/AuthContext';
 import { tripsRepository } from '../../data/tripsRepository';
@@ -59,9 +59,194 @@ interface CalendarDay {
   isScheduled: boolean;
   attendance?: TripAttendance;
   isToday: boolean;
+  confirmedCount: number;
 }
 
 type Status = 'loading' | 'success' | 'error' | 'notFound';
+
+const styles = StyleSheet.create({
+  scroll: { padding: Spacing.md, paddingBottom: Spacing.xxl },
+  summaryHeader: { flexDirection: 'row', alignItems: 'center' },
+  title: { fontSize: 16, fontFamily: FontFamily.bold, color: Colors.text },
+  subtitle: {
+    fontSize: 12,
+    color: Colors.textLight,
+    fontFamily: FontFamily.regular,
+    marginTop: 4,
+    lineHeight: 17,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.xs,
+    marginTop: Spacing.sm,
+  },
+  calendarRow: {
+    paddingVertical: Spacing.xs,
+    gap: Spacing.xs,
+    paddingEnd: Spacing.sm,
+  },
+  dayCard: {
+    width: 68,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.xl,
+    backgroundColor: Colors.surfaceLowest,
+    borderWidth: 1.5,
+    borderColor: Colors.borderLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 100,
+  },
+  dayCardSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primaryContainer,
+    ...Shadows.card,
+  },
+  dayCardDisabled: { opacity: 0.4, backgroundColor: Colors.surfaceDisabled },
+  dayCardConfirmed: { borderColor: Colors.success, backgroundColor: Colors.successContainer },
+  dayCardDeclined: { borderColor: Colors.error, backgroundColor: Colors.errorContainer },
+  dayLabel: {
+    fontSize: 12,
+    fontFamily: FontFamily.semiBold,
+    color: Colors.textLight,
+    textTransform: 'capitalize',
+  },
+  dayLabelActive: { color: Colors.primary },
+  dayNum: {
+    fontSize: 20,
+    fontFamily: FontFamily.bold,
+    color: Colors.text,
+    marginTop: 2,
+  },
+  todayPill: {
+    position: 'absolute',
+    top: -Spacing.xs,
+    backgroundColor: Colors.secondary,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.pill,
+    zIndex: 1,
+  },
+  todayPillText: {
+    fontSize: 9,
+    fontFamily: FontFamily.bold,
+    color: Colors.onSecondary,
+    letterSpacing: 0.5,
+  },
+  tickWrap: {
+    marginTop: 6,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tickWrapDecline: { backgroundColor: 'transparent' },
+  tickWrapPending: { backgroundColor: 'transparent' },
+  actionCard: {
+    padding: Spacing.md,
+    borderRadius: BorderRadius.xxl,
+    gap: Spacing.sm,
+  },
+  actionRequired: {
+    borderColor: Colors.primary,
+    borderWidth: 1.5,
+  },
+  actionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.xs,
+  },
+  actionEyebrow: {
+    fontSize: 12,
+    fontFamily: FontFamily.semiBold,
+    color: Colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  actionDate: {
+    fontSize: 20,
+    fontFamily: FontFamily.bold,
+    color: Colors.text,
+    marginTop: 2,
+  },
+  helperLight: {
+    paddingVertical: Spacing.xs,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    backgroundColor: Colors.surface1,
+    borderRadius: BorderRadius.sm,
+  },
+  priceLabel: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    fontFamily: FontFamily.semiBold,
+  },
+  priceText: {
+    fontSize: 18,
+    fontFamily: FontFamily.bold,
+    color: Colors.secondary,
+  },
+  twoCol: {
+    flexDirection: 'row',
+    gap: Spacing.lg,
+    alignItems: 'flex-start',
+  },
+  twoColMain: { flex: 2 },
+  twoColAside: { flex: 1 },
+  attendeesList: {
+    marginTop: Spacing.xs,
+  },
+  nameRow: {
+    flexDirection: 'column',
+    gap: Spacing.xs,
+  },
+  participantChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.surfaceLowest,
+    padding: 10,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    width: '100%',
+  },
+  participantInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  participantAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.primaryContainer,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  participantInitials: {
+    fontSize: 12,
+    fontFamily: FontFamily.bold,
+    color: Colors.primary,
+  },
+  participantName: {
+    fontSize: 14,
+    fontFamily: FontFamily.semiBold,
+    color: Colors.text,
+    flex: 1,
+  },
+  participantPrice: {
+    fontSize: 13,
+    fontFamily: FontFamily.bold,
+    color: Colors.secondary,
+  },
+});
 
 export const AttendanceScreen: React.FC = () => {
   const { t } = useTranslation();
@@ -116,9 +301,36 @@ export const AttendanceScreen: React.FC = () => {
       const attendance = (trip.attendance ?? []).find(
         (a) => a.user_id === user.id && a.trip_date === iso
       );
-      return { date, iso, isScheduled, attendance, isToday: i === 0 };
+      const confirmedCount = (trip.attendance ?? []).filter(
+        (a) => a.trip_date === iso && a.status === AttendanceStatus.Confirmed
+      ).length;
+      return { date, iso, isScheduled, attendance, isToday: i === 0, confirmedCount };
     });
   }, [trip, user]);
+
+  const acceptedOffer = useMemo(
+    () =>
+      trip?.offers?.find(
+        (o) => o.captain_id === trip.captain_id && o.status === OfferStatus.Accepted
+      ),
+    [trip]
+  );
+
+  const totalTripPrice = useMemo(() => acceptedOffer?.price_per_ride || acceptedOffer?.offer_price || 0, [acceptedOffer]);
+
+  const dayAttendees = useMemo(() => {
+    if (!selectedDate || !trip) return [];
+    const confirmed = (trip.attendance ?? []).filter(
+      (a) => a.trip_date === selectedDate && a.status === AttendanceStatus.Confirmed
+    );
+    const userIds = confirmed.map((c) => c.user_id);
+    return (trip.passengers ?? []).filter((p) => userIds.includes(p.user_id));
+  }, [trip, selectedDate]);
+
+  const currentPrice = useMemo(() => {
+    if (dayAttendees.length === 0) return 0;
+    return totalTripPrice / dayAttendees.length;
+  }, [dayAttendees.length, totalTripPrice]);
 
   if (status === 'loading') {
     return (
@@ -126,21 +338,23 @@ export const AttendanceScreen: React.FC = () => {
         <Header title={t('attendance.title')} onBack={() => nav.goBack()} />
         <ScrollView contentContainerStyle={styles.scroll}>
           <Card>
-            <Skeleton width="50%" height={14} />
+            <Skeleton width="40%" height={14} />
             <View style={{ height: 8 }} />
-            <Skeleton width="80%" height={10} />
+            <Skeleton width="70%" height={10} />
             <View style={{ height: Spacing.md }} />
-            <View style={{ flexDirection: 'row', gap: Spacing.xs }}>
-              <Skeleton height={64} radius={BorderRadius.md} style={{ flex: 1 }} />
-              <Skeleton height={64} radius={BorderRadius.md} style={{ flex: 1 }} />
+            <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
+              <Skeleton height={60} radius={BorderRadius.lg} style={{ flex: 1 }} />
+              <Skeleton height={60} radius={BorderRadius.lg} style={{ flex: 1 }} />
             </View>
           </Card>
           <View style={{ height: Spacing.md }} />
-          <View style={{ flexDirection: 'row', gap: Spacing.xs }}>
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} width={64} height={84} radius={BorderRadius.md} />
+          <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} width={68} height={100} radius={BorderRadius.xl} />
             ))}
           </View>
+          <View style={{ height: Spacing.md }} />
+          <Card style={{ height: 240, borderRadius: BorderRadius.xxl }} />
         </ScrollView>
       </Screen>
     );
@@ -174,8 +388,6 @@ export const AttendanceScreen: React.FC = () => {
   }
 
   const selectedDay = days.find((d) => d.iso === selectedDate);
-  const myPricing = (trip.pricing ?? []).find((p) => p.user_id === user.id);
-  const lockedPrice = selectedDay?.attendance?.price_locked || myPricing?.price;
 
   const handleConfirm = async () => {
     if (!selectedDay?.isScheduled) return;
@@ -251,10 +463,10 @@ export const AttendanceScreen: React.FC = () => {
           icon="checkmark-circle-outline"
           tone="primary"
         />
-        {myPricing?.price ? (
+        {totalTripPrice > 0 ? (
           <StatTile
-            label={t('attendance.lockedPrice')}
-            value={formatCurrency(myPricing.price)}
+            label={t('attendance.totalTripPrice')}
+            value={formatCurrency(totalTripPrice)}
             icon="cash-outline"
             tone="secondary"
           />
@@ -316,29 +528,27 @@ export const AttendanceScreen: React.FC = () => {
               >
                 {d.date.getDate()}
               </Text>
-              {!d.isScheduled ? (
-                <Text style={styles.dayBottomMeta}>—</Text>
-              ) : status === AttendanceStatus.Confirmed ? (
+              {status === AttendanceStatus.Confirmed ? (
                 <View style={styles.tickWrap}>
                   <Ionicons
-                    name="checkmark"
-                    size={11}
-                    color={Colors.onSecondary}
+                    name="checkmark-circle"
+                    size={16}
+                    color={Colors.onPrimary}
                   />
                 </View>
               ) : status === AttendanceStatus.Declined ? (
                 <View style={[styles.tickWrap, styles.tickWrapDecline]}>
-                  <Ionicons name="close" size={11} color={Colors.onError} />
+                  <Ionicons name="close-circle" size={16} color={Colors.onError} />
                 </View>
-              ) : (
+              ) : d.isScheduled ? (
                 <View style={[styles.tickWrap, styles.tickWrapPending]}>
                   <Ionicons
-                    name="ellipse"
-                    size={6}
-                    color={Colors.warning}
+                    name="radio-button-off"
+                    size={14}
+                    color={Colors.textLight}
                   />
                 </View>
-              )}
+              ) : null}
             </Pressable>
           );
         })}
@@ -386,60 +596,77 @@ export const AttendanceScreen: React.FC = () => {
 
       {!selectedDay.isScheduled ? (
         <Text style={styles.helperLight}>{t('attendance.noTripToday')}</Text>
-      ) : selectedDay.attendance?.status === AttendanceStatus.Confirmed ? (
-        <>
-          {lockedPrice ? (
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>
-                {t('attendance.lockedPrice')}
-              </Text>
-              <Text style={styles.priceText}>{formatCurrency(lockedPrice)}</Text>
-            </View>
-          ) : null}
-          <Banner
-            tone="warning"
-            title={t('attendance.cancelWarning')}
-            compact
-          />
-          <Button
-            title={t('attendance.cancelSeat')}
-            variant="outline"
-            loading={submitting}
-            onPress={handleCancel}
-          />
-        </>
       ) : (
         <>
-          <Banner
-            tone="warning"
-            title={t('attendance.confirmRequired')}
-            description={t('attendance.confirmHint')}
-          />
-          {lockedPrice ? (
+          {totalTripPrice > 0 ? (
             <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>{t('trips.perPassenger')}</Text>
-              <Text style={styles.priceText}>{formatCurrency(lockedPrice)}</Text>
+              <View>
+                <Text style={styles.priceLabel}>{t('trips.perPassenger')}</Text>
+                <Text style={{ fontSize: 10, color: Colors.textLight }}>
+                  {formatCurrency(totalTripPrice)} / {dayAttendees.length || 1}
+                </Text>
+              </View>
+              <Text style={styles.priceText}>{formatCurrency(currentPrice)}</Text>
             </View>
           ) : null}
-          <Button
-            title={t('attendance.confirmAttendance')}
-            loading={submitting}
-            onPress={handleConfirm}
-            leftIcon={
-              <Ionicons
-                name="checkmark-circle"
-                size={18}
-                color={Colors.onPrimary}
-              />
-            }
-          />
-          {selectedDay.attendance?.status !== AttendanceStatus.Declined ? (
+
+          {dayAttendees.length > 0 && (
+            <View style={styles.attendeesList}>
+              <View style={styles.nameRow}>
+                {dayAttendees.map((p) => (
+                  <View key={p.user_id} style={styles.participantChip}>
+                    <View style={styles.participantInfo}>
+                      <View style={styles.participantAvatar}>
+                        <Text style={styles.participantInitials}>
+                          {(p.user_name || '?').charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                      <Text style={styles.participantName} numberOfLines={1}>
+                        {p.user_name}
+                      </Text>
+                    </View>
+                    <Text style={styles.participantPrice}>
+                      {formatCurrency(currentPrice)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {selectedDay.attendance?.status === AttendanceStatus.Confirmed ? (
             <Button
               title={t('attendance.cancelSeat')}
-              variant="ghost"
+              variant="outline"
+              loading={submitting}
               onPress={handleCancel}
+              style={{ marginTop: Spacing.sm }}
             />
-          ) : null}
+          ) : (
+            <>
+              <Button
+                title={t('attendance.confirmAttendance')}
+                loading={submitting}
+                onPress={handleConfirm}
+                style={{ marginTop: Spacing.sm }}
+                leftIcon={
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={18}
+                    color={Colors.onPrimary}
+                  />
+                }
+              />
+              {selectedDay.attendance?.status !== AttendanceStatus.Declined ? (
+                <Button
+                  title={t('attendance.cancelSeat')}
+                  variant="ghost"
+                  onPress={handleCancel}
+                  style={{ marginTop: Spacing.xs }}
+                />
+              ) : null}
+            </>
+          )}
         </>
       )}
     </Card>
@@ -449,10 +676,6 @@ export const AttendanceScreen: React.FC = () => {
     <Screen background={Colors.surface}>
       <Header
         title={t('attendance.title')}
-        subtitle={t('attendance.summarySubtitle', {
-          confirmed: confirmedCount,
-          total: totalScheduled,
-        })}
         onBack={() => nav.goBack()}
       />
       <ScrollView
@@ -499,154 +722,3 @@ export const AttendanceScreen: React.FC = () => {
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  scroll: { padding: Spacing.lg, paddingBottom: Spacing.xxl },
-  summaryHeader: { flexDirection: 'row', alignItems: 'center' },
-  title: { fontSize: 16, fontFamily: FontFamily.bold, color: Colors.text },
-  subtitle: {
-    fontSize: 12,
-    color: Colors.textLight,
-    fontFamily: FontFamily.regular,
-    marginTop: 4,
-    lineHeight: 17,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.xs,
-    marginTop: Spacing.md,
-  },
-  calendarRow: {
-    paddingVertical: Spacing.xs,
-    gap: Spacing.xs,
-    paddingEnd: Spacing.sm,
-  },
-  dayCard: {
-    width: 64,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.surfaceLowest,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-    alignItems: 'center',
-    minHeight: 90,
-  },
-  dayCardSelected: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primary,
-    ...Shadows.subtle,
-  },
-  dayCardDisabled: { opacity: 0.45 },
-  dayCardConfirmed: {
-    borderColor: Colors.secondary,
-    backgroundColor: Colors.secondarySoft,
-  },
-  dayCardDeclined: {
-    borderColor: Colors.error,
-    backgroundColor: Colors.errorSoft,
-  },
-  dayLabel: {
-    fontSize: 12,
-    color: Colors.textLight,
-    fontFamily: FontFamily.semiBold,
-  },
-  dayLabelActive: { color: Colors.onPrimary },
-  dayNum: {
-    fontSize: 18,
-    color: Colors.text,
-    fontFamily: FontFamily.bold,
-    marginTop: 2,
-  },
-  todayPill: {
-    position: 'absolute',
-    top: -8,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.pill,
-    backgroundColor: Colors.tertiaryLight,
-  },
-  todayPillText: {
-    fontSize: 8,
-    fontFamily: FontFamily.bold,
-    color: Colors.tertiary,
-    letterSpacing: 0.5,
-  },
-  tickWrap: {
-    marginTop: 6,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: Colors.secondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tickWrapDecline: { backgroundColor: Colors.error },
-  tickWrapPending: {
-    backgroundColor: Colors.warningSoft,
-    borderWidth: 1,
-    borderColor: Colors.warning,
-  },
-  dayBottomMeta: {
-    marginTop: 4,
-    fontSize: 11,
-    color: Colors.textLight,
-    fontFamily: FontFamily.semiBold,
-  },
-  actionCard: { marginTop: Spacing.md, gap: Spacing.sm },
-  actionRequired: {
-    borderWidth: 1.5,
-    borderColor: Colors.warning,
-    backgroundColor: Colors.warningSoft,
-  },
-  actionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  actionEyebrow: {
-    fontSize: 11,
-    color: Colors.textLight,
-    fontFamily: FontFamily.bold,
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-  },
-  actionDate: {
-    fontSize: 16,
-    fontFamily: FontFamily.bold,
-    color: Colors.text,
-    marginTop: 2,
-  },
-  helperLight: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    fontFamily: FontFamily.regular,
-    paddingVertical: Spacing.xs,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: Spacing.xs,
-    paddingHorizontal: Spacing.sm,
-    backgroundColor: Colors.surface1,
-    borderRadius: BorderRadius.sm,
-  },
-  priceLabel: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    fontFamily: FontFamily.semiBold,
-  },
-  priceText: {
-    fontSize: 18,
-    fontFamily: FontFamily.bold,
-    color: Colors.secondary,
-  },
-  twoCol: {
-    flexDirection: 'row',
-    gap: Spacing.lg,
-    alignItems: 'flex-start',
-  },
-  twoColMain: { flex: 2 },
-  twoColAside: { flex: 1 },
-});
