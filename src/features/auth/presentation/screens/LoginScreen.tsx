@@ -106,6 +106,7 @@ export const LoginScreen: React.FC = () => {
     <Screen background={Colors.primary} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
         style={{ flex: 1 }}
       >
         <ScrollView
@@ -307,7 +308,7 @@ export const LoginScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  scroll: { paddingBottom: Spacing.xxl, flexGrow: 1 },
+  scroll: { paddingBottom: Platform.OS === 'ios' ? 120 : 80, flexGrow: 1 },
   brandTop: {
     alignItems: 'center',
     paddingTop: Spacing.lg,

@@ -3,6 +3,7 @@ import { isDevMode, findDevAccount } from '@core/config/devMode';
 import { supabase } from '@core/config/supabase';
 import { dummyCaptains, dummyUsers } from '@core/data/dummyStore';
 import { UserRoleValue } from '@core/constants';
+import { normalizePhone } from '@core/utils/validators';
 import { AuthUser, CaptainProfile, User } from '../domain/models/User';
 
 const SESSION_KEY = '@twsila_v2_session_user';
@@ -62,8 +63,9 @@ export const authRepository = {
   },
 
   async signIn(phone: string, password: string): Promise<AuthUser> {
+    const formattedPhone = normalizePhone(phone);
     if (isDevMode()) {
-      const account = findDevAccount(phone, password);
+      const account = findDevAccount(formattedPhone, password) || findDevAccount(phone, password);
       if (!account) throw new Error('Invalid phone or password');
       const user: AuthUser = {
         id: account.id,
@@ -81,7 +83,7 @@ export const authRepository = {
     }
 
     const { data, error } = await supabase.auth.signInWithPassword({
-      phone,
+      phone: formattedPhone,
       password,
     });
     if (error || !data.user) throw error || new Error('Login failed');
@@ -91,11 +93,12 @@ export const authRepository = {
   },
 
   async signUp(input: SignUpInput): Promise<AuthUser> {
+    const formattedPhone = normalizePhone(input.phone);
     if (isDevMode()) {
       const newUser: AuthUser = {
         id: `dev-${input.role}-${Date.now()}`,
         name: input.name,
-        phone: input.phone,
+        phone: formattedPhone,
         email: input.email,
         role: input.role,
         rating: 5,
@@ -128,7 +131,7 @@ export const authRepository = {
     }
 
     const { data, error } = await supabase.auth.signUp({
-      phone: input.phone,
+      phone: formattedPhone,
       password: input.password,
     });
     if (error || !data.user) throw error || new Error('Sign-up failed');
@@ -136,7 +139,7 @@ export const authRepository = {
     await supabase.from('users').insert({
       id: data.user.id,
       name: input.name,
-      phone: input.phone,
+      phone: formattedPhone,
       email: input.email,
       role: input.role,
     });

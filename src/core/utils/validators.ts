@@ -1,6 +1,17 @@
+export const normalizePhone = (phone: string): string => {
+  let cleaned = phone.replace(/[\s-]/g, '');
+  if (cleaned.startsWith('0')) {
+    return '+20' + cleaned.substring(1);
+  }
+  if (!cleaned.startsWith('+')) {
+    return '+' + cleaned;
+  }
+  return cleaned;
+};
+
 export const isValidPhone = (phone: string): boolean => {
-  const cleaned = phone.replace(/[\s-]/g, '');
-  return /^\+?\d{10,15}$/.test(cleaned);
+  const cleaned = normalizePhone(phone);
+  return /^\+201[0125]\d{8}$/.test(cleaned);
 };
 
 export const isValidEmail = (email: string): boolean =>

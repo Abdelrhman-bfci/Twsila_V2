@@ -420,13 +420,22 @@ export const TripDetailsScreen: React.FC = () => {
                 <View style={{ flex: 1, gap: 2 }}>
                   <Text style={styles.passengerName}>{p.user_name || '—'}</Text>
                   {(isAdmin || isAssignedCaptain) && p.user_phone ? (
-                    <Pressable
-                      onPress={() => Linking.openURL(`tel:${p.user_phone}`)}
-                      style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
-                    >
-                      <Ionicons name="call-outline" size={11} color={Colors.primary} />
-                      <Text style={styles.passengerPhone}>{p.user_phone}</Text>
-                    </Pressable>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+                      <Pressable
+                        onPress={() => Linking.openURL(`tel:${p.user_phone}`)}
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                      >
+                        <Ionicons name="call-outline" size={13} color={Colors.primary} />
+                        <Text style={styles.passengerPhone}>Call</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => Linking.openURL(`whatsapp://send?phone=${p.user_phone}`)}
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                      >
+                        <Ionicons name="logo-whatsapp" size={13} color="#25D366" />
+                        <Text style={[styles.passengerPhone, { color: '#25D366' }]}>WhatsApp</Text>
+                      </Pressable>
+                    </View>
                   ) : (
                     <Text style={styles.passengerMeta}>
                       {p.pickup_address
@@ -462,14 +471,23 @@ export const TripDetailsScreen: React.FC = () => {
           <View style={{ flex: 1, gap: 2 }}>
             <Text style={styles.heroAdminLabel}>{t('nav.captain')}</Text>
             <Text style={styles.heroAdminName}>{trip.captain_name || '—'}</Text>
-            {isAdmin && trip.captain_phone ? (
-              <Pressable
-                onPress={() => Linking.openURL(`tel:${trip.captain_phone}`)}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
-              >
-                <Ionicons name="call-outline" size={11} color={Colors.primary} />
-                <Text style={styles.passengerPhone}>{trip.captain_phone}</Text>
-              </Pressable>
+            {(isAdmin || isMember) && trip.captain_phone ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginTop: 4 }}>
+                <Pressable
+                  onPress={() => Linking.openURL(`tel:${trip.captain_phone}`)}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                >
+                  <Ionicons name="call-outline" size={13} color={Colors.primary} />
+                  <Text style={styles.passengerPhone}>Call</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => Linking.openURL(`whatsapp://send?phone=${trip.captain_phone}`)}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                >
+                  <Ionicons name="logo-whatsapp" size={13} color="#25D366" />
+                  <Text style={[styles.passengerPhone, { color: '#25D366' }]}>WhatsApp</Text>
+                </Pressable>
+              </View>
             ) : null}
           </View>
         </View>

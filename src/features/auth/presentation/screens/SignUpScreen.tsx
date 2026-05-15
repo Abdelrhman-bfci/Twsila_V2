@@ -156,6 +156,7 @@ export const SignUpScreen: React.FC = () => {
       <Header onBack={goBack} title={t('auth.joinTwsila')} transparent />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
         style={{ flex: 1 }}
       >
         <ScrollView
@@ -381,7 +382,7 @@ const RoleStep: React.FC<{
 const styles = StyleSheet.create({
   scroll: {
     padding: Spacing.lg,
-    paddingBottom: Spacing.xxl,
+    paddingBottom: Platform.OS === 'ios' ? 120 : 80,
     flexGrow: 1,
   },
   container: {
